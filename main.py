@@ -351,7 +351,8 @@ def place_block(grid_position, block):
     grid_x, grid_y = grid_position
     map[chunk_y][chunk_x][grid_y][grid_x] = {'block':block, 'health':block_data[block]['strength']}
 
-give_player_item('oak_log', 1)
+give_player_item('oak_sapling', 1)
+give_player_item('wooden_axe', 1)
 
 ## Block Info
 def draw_block_info():
@@ -363,6 +364,27 @@ def draw_block_info():
     draw_text(tiny_font, (4, HEIGHT - 100), name, (255, 255, 255))
     draw_text(tiny_font, (4, HEIGHT - 80), id, (255, 255, 255))
     draw_text(tiny_font, (4, HEIGHT - 60), str(health), (255, 255, 255))
+
+## Random Tick
+def random_tick():
+    x = random.randint(0, CELLS_X-1)
+    y = random.randint(0, CELLS_Y-1)
+    if debug: pygame.draw.rect(grid_layer, (0, 100, 255), (x * GRID_SIZE, y * GRID_SIZE, GRID_SIZE, GRID_SIZE))
+    
+    if map[chunk_y][chunk_x][y][x]['block'] == 'oak_sapling':
+        if random.randint(0, 1) == 0:
+            place_structure((x, y), 'oak_tree')
+
+## Structure
+def place_structure(root_position, id):
+    with open(f'structures/{id}.json') as file:
+        data = json.load(file)
+        for block in data:
+            relative_position = block['position']
+            block_name = block['block']
+            position = root_position[0] + relative_position[0], root_position[1] + relative_position[1]
+            place_block(position, block_name)
+
 
 ## Main Loop
 while True:
@@ -385,7 +407,6 @@ while True:
             if event.key == pygame.K_8: selected_slot = 7
             if event.key == pygame.K_9: selected_slot = 8
 
-
     ## Input Gathering
     mouse_pos = pygame.mouse.get_pos()
     mouse_down = pygame.mouse.get_pressed()
@@ -393,6 +414,7 @@ while True:
 
     ## Clear Screen
     window.fill(BG_COLOR)
+
 
     ## Draw Blocks
     draw_blocks()
@@ -421,6 +443,7 @@ while True:
     player_rect = pygame.Rect(player.position, (GRID_SIZE, GRID_SIZE * 2))
     if debug: pygame.draw.rect(window, (255, 0, 0), player_rect, 3)
 
+
     if mouse_down[0]:
         hit_block((mouse_grid_x, mouse_grid_y))
     if mouse_down[2]:
@@ -438,6 +461,9 @@ while True:
     ## Particles
     for particle in particles:
         particle.update()
+
+    ## Update World
+    random_tick()
 
     ## Update Screen
     window.blit(grid_layer, (0, 0))

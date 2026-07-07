@@ -64,5 +64,27 @@
         "drop_min":1,
         "drop_max":1,
         "tool":"axe"
+    },
+    "oak_leaf": {
+        "name":"Oak Leaf",
+        "strength":10,
+        "texture":"oak_leaf.png",
+        "passable":false,
+        "color":[16, 99, 40],
+        "drop":"",
+        "drop_min":0,
+        "drop_max":0,
+        "tool":""
+    },
+    "oak_sapling": {
+        "name":"Oak Sapling",
+        "strength":1,
+        "texture":"oak_sapling.png",
+        "passable":true,
+        "color":[93, 46, 16],
+        "drop":"oak_sapling",
+        "drop_min":1,
+        "drop_max":1,
+        "tool":""
     }
 }
