@@ -1,5 +1,5 @@
 ## Libraries
-import pygame, json, os, random, math
+import pygame, json, os, random, math, worldgen
 
 ## Constants
 WIDTH = 800
@@ -12,6 +12,8 @@ CELLS_Y = HEIGHT // GRID_SIZE
 PLAYER_ACCEL = 1
 MAX_PLAYER_SPEED = 5
 BG_COLOR = (97, 185, 222)
+CHUNKS_X = 16
+CHUNKS_Y = 16
 image_scale = GRID_SIZE / 16
 
 ## Debug Mode
@@ -31,30 +33,50 @@ chunk_y = 0
 def create_blank_chunk():
     return [[{'block':'', 'health':0} for x in range(CELLS_X)] for y in range(CELLS_Y)]
 
-def basic_surface_chunk():
-    chunk = create_blank_chunk()
-    for y in range(CELLS_Y):
-        for x in range(CELLS_X):
-            if y == 7: chunk[y][x] = {'block':'grass', 'health':block_data['grass']['strength']}
-            if y >= 8 and y < 10: chunk[y][x] = {'block':'dirt', 'health':block_data['dirt']['strength']}
-            if y >= 10: chunk[y][x] = {'block':'stone', 'health':block_data['stone']['strength']}
-    return chunk
+def get_underground_block(chunk_y, local_y):
+    if chunk_y == 0:
+        return "dirt"
 
-def basic_ground_chunk():
-    chunk = create_blank_chunk()
-    for y in range(CELLS_Y):
-        for x in range(CELLS_X):
-            chunk[y][x] = {'block':'stone', 'health':block_data['stone']['strength']}
-    return chunk
+    if chunk_y == 1:
+        dirt_chances = [
+            1.0, 1.0, 1.0,
+            0.9, 0.8, 0.7,
+            0.6, 0.5, 0.4,
+            0.3, 0.2, 0.1,
+            0.0, 0.0, 0.0, 0.0
+        ]
 
-map = [[create_blank_chunk() for x in range(16)] for y in range(16)]
+        if random.random() < dirt_chances[local_y]:
+            return "dirt"
+        else:
+            return "stone"
 
-for x in range(16):
-    for y in range(16):
-        if y == 0:
-            map[y][x] = basic_surface_chunk()
-        if y >= 1:
-            map[y][x] = basic_ground_chunk()
+    return "stone"
+
+map = [[create_blank_chunk() for x in range(CHUNKS_X)] for y in range(CHUNKS_Y)]
+
+for global_x in range(CHUNKS_X * CELLS_X):
+    surface_y = worldgen.get_surface_height(global_x)
+
+    chunk_x = global_x // CELLS_X
+    local_x = global_x % CELLS_X
+
+    for global_y in range(surface_y, CHUNKS_Y * CELLS_Y):
+        chunk_y = global_y // CELLS_Y
+        local_y = global_y % CELLS_Y
+
+        if global_y == surface_y:
+            block = "grass"
+        else:
+            block = get_underground_block(chunk_y, local_y)
+
+        map[chunk_y][chunk_x][local_y][local_x] = {
+            "block": block,
+            "health": block_data[block]["strength"]
+        }
+
+chunk_x = 0
+chunk_y = 0
 
 ## Pygame Setup
 window = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -101,10 +123,32 @@ def draw_blocks():
 
 ## Helpers
 def is_solid_grid(x, y):
-    if x < 0 or x >= CELLS_X or y < 0 or y >= CELLS_Y:
+    check_chunk_x = chunk_x
+    check_chunk_y = chunk_y
+
+    while x < 0:
+        check_chunk_x -= 1
+        x += CELLS_X
+
+    while x >= CELLS_X:
+        check_chunk_x += 1
+        x -= CELLS_X
+
+    while y < 0:
+        check_chunk_y -= 1
+        y += CELLS_Y
+
+    while y >= CELLS_Y:
+        check_chunk_y += 1
+        y -= CELLS_Y
+
+    if check_chunk_x < 0 or check_chunk_x >= CHUNKS_X:
         return False
 
-    block_name = map[chunk_y][chunk_x][y][x]['block']
+    if check_chunk_y < 0 or check_chunk_y >= CHUNKS_Y:
+        return False
+
+    block_name = map[check_chunk_y][check_chunk_x][y][x]['block']
     if not block_name:
         return False
 
@@ -120,13 +164,46 @@ def get_nearby_solid_rects(rect):
 
     for y in range(top, bottom + 1):
         for x in range(left, right + 1):
-            if is_solid_grid(x, y):
-                rects.append(pygame.Rect(
-                    x * GRID_SIZE,
-                    y * GRID_SIZE,
-                    GRID_SIZE,
-                    GRID_SIZE
-                ))
+            check_chunk_x = chunk_x
+            check_chunk_y = chunk_y
+            local_x = x
+            local_y = y
+
+            while local_x < 0:
+                check_chunk_x -= 1
+                local_x += CELLS_X
+
+            while local_x >= CELLS_X:
+                check_chunk_x += 1
+                local_x -= CELLS_X
+
+            while local_y < 0:
+                check_chunk_y -= 1
+                local_y += CELLS_Y
+
+            while local_y >= CELLS_Y:
+                check_chunk_y += 1
+                local_y -= CELLS_Y
+
+            if check_chunk_x < 0 or check_chunk_x >= CHUNKS_X:
+                continue
+
+            if check_chunk_y < 0 or check_chunk_y >= CHUNKS_Y:
+                continue
+
+            block_name = map[check_chunk_y][check_chunk_x][local_y][local_x]['block']
+            if not block_name:
+                continue
+
+            if block_data[block_name]['passable']:
+                continue
+
+            rects.append(pygame.Rect(
+                x * GRID_SIZE,
+                y * GRID_SIZE,
+                GRID_SIZE,
+                GRID_SIZE
+            ))
 
     return rects
 
@@ -372,7 +449,7 @@ def random_tick():
     if debug: pygame.draw.rect(grid_layer, (0, 100, 255), (x * GRID_SIZE, y * GRID_SIZE, GRID_SIZE, GRID_SIZE))
     
     if map[chunk_y][chunk_x][y][x]['block'] == 'oak_sapling':
-        if random.randint(0, 1) == 0:
+        if random.randint(0, 9) == 0:
             place_structure((x, y), 'oak_tree')
 
 ## Structure
@@ -384,7 +461,6 @@ def place_structure(root_position, id):
             block_name = block['block']
             position = root_position[0] + relative_position[0], root_position[1] + relative_position[1]
             place_block(position, block_name)
-
 
 ## Main Loop
 while True:
@@ -415,7 +491,6 @@ while True:
     ## Clear Screen
     window.fill(BG_COLOR)
 
-
     ## Draw Blocks
     draw_blocks()
 
@@ -424,6 +499,7 @@ while True:
     if debug:
         draw_grid_lines()
         draw_text(tiny_font, (4, 50), str(player.position), (255, 255, 255))
+        draw_text(tiny_font, (4, 80), f'[{chunk_x}, {chunk_y}]', (255, 255, 255))
     
     ## Update Player
     player.update()
@@ -442,7 +518,6 @@ while True:
     ## Breaking & Placing
     player_rect = pygame.Rect(player.position, (GRID_SIZE, GRID_SIZE * 2))
     if debug: pygame.draw.rect(window, (255, 0, 0), player_rect, 3)
-
 
     if mouse_down[0]:
         hit_block((mouse_grid_x, mouse_grid_y))
