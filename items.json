@@ -6,5 +6,9 @@
     "flower":{
         "texture":"flower.png",
         "places":"flower"
+    },
+    "cobblestone":{
+        "texture":"cobblestone.png",
+        "places":"cobblestone"
     }
 }

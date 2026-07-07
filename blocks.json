@@ -35,5 +35,15 @@
         "drop":"cobblestone",
         "drop_min":1,
         "drop_max":1
+    },
+    "cobblestone": {
+        "strength":120,
+        "texture":"cobblestone.png",
+        "passable":false,
+        "color":[107, 107, 107],
+        "tool":"pickaxe",
+        "drop":"cobblestone",
+        "drop_min":1,
+        "drop_max":1
     }
 }
