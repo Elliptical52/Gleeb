@@ -1,0 +1,39 @@
+{
+    "grass":{
+        "strength":60,
+        "texture":"grass.png",
+        "passable":false,
+        "color":[48, 255, 48],
+        "drop":"dirt",
+        "drop_min":1,
+        "drop_max":1
+    },
+    "dirt":{
+        "strength":60,
+        "texture":"dirt.png",
+        "passable":false,
+        "color":[156, 90, 50],
+        "drop":"dirt",
+        "drop_min":1,
+        "drop_max":1
+    }, 
+    "flower": {
+        "strength":1,
+        "texture":"flower.png",
+        "passable":true,
+        "color":[180, 64, 122],
+        "drop":"flower",
+        "drop_min":1,
+        "drop_max":1
+    },
+    "stone": {
+        "strength":120,
+        "texture":"stone.png",
+        "passable":false,
+        "color":[107, 107, 107],
+        "tool":"pickaxe",
+        "drop":"cobblestone",
+        "drop_min":1,
+        "drop_max":1
+    }
+}

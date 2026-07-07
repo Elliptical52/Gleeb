@@ -1,0 +1,10 @@
+{
+    "dirt":{
+        "texture":"dirt.png",
+        "places":"grass"
+    },
+    "flower":{
+        "texture":"flower.png",
+        "places":"flower"
+    }
+}
