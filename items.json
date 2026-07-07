@@ -1,7 +1,7 @@
 {
     "dirt":{
         "texture":"dirt.png",
-        "places":"grass"
+        "places":"dirt"
     },
     "flower":{
         "texture":"flower.png",
