@@ -6,20 +6,16 @@ WIDTH = 800
 HEIGHT = 800
 FPS = 60
 GRAVITY = 1
-
 GRID_SIZE = 50
-
 CELLS_X = WIDTH // GRID_SIZE
 CELLS_Y = HEIGHT // GRID_SIZE
-
 PLAYER_ACCEL = 1
 MAX_PLAYER_SPEED = 5
-
 BG_COLOR = (97, 185, 222)
-
 image_scale = GRID_SIZE / 16
 
-grid = [[{'block':'', 'health':0} for x in range(CELLS_X)] for y in range(CELLS_Y)]
+## Debug Mode
+debug = False
 
 ## Load Block Data
 with open('blocks.json') as file:
@@ -29,42 +25,35 @@ with open('blocks.json') as file:
 with open('items.json') as file:
     item_data = json.load(file)
 
-## World Generation
-for i in range(CELLS_X):
-    # Loops through every column and fills it out with blocks
-    # 00 air
-    # 01 air
-    # 02 air 
-    # 03 air
-    # 04 air
-    # 05 grass
-    # 06 dirt
-    # 07 dirt
-    # 08 33% stone 66% dirt
-    # 09 50% stone 50% dirt
-    # 10 66% stone 33% dirt
-    # 11 stone
-    # 12 stone
-    # 13 stone
-    # 14 stone
-    # 15 stone
+## Worldgen
+chunk_x = 0
+chunk_y = 0
+def create_blank_chunk():
+    return [[{'block':'', 'health':0} for x in range(CELLS_X)] for y in range(CELLS_Y)]
 
-    grid[5][i]['block'] = 'grass'
-    grid[6][i]['block'] = 'dirt'
-    grid[7][i]['block'] = 'dirt'
-    grid[8][i]['block'] = 'stone' if random.randint(0, 2) == 0 else 'dirt'
-    grid[9][i]['block'] = 'stone' if random.randint(0, 1) else 'dirt'
-    grid[10][i]['block'] = 'stone' if random.randint(0, 2) != 0 else 'dirt'
-    grid[11][i]['block'] = 'stone'
-    grid[12][i]['block'] = 'stone'
-    grid[13][i]['block'] = 'stone'
-    grid[14][i]['block'] = 'stone'
-    grid[15][i]['block'] = 'stone'
+def basic_surface_chunk():
+    chunk = create_blank_chunk()
+    for y in range(CELLS_Y):
+        for x in range(CELLS_X):
+            if y == 7: chunk[y][x] = {'block':'grass', 'health':block_data['grass']['strength']}
+            if y >= 8: chunk[y][x] = {'block':'dirt', 'health':block_data['dirt']['strength']}
+    return chunk
 
-    for y in range(5, 16):
-        grid[y][i]['health'] = block_data[grid[y][i]['block']]['strength']
+def basic_ground_chunk():
+    chunk = create_blank_chunk()
+    for y in range(CELLS_Y):
+        for x in range(CELLS_X):
+            chunk[y][x] = {'block':'stone', 'health':block_data['stone']['strength']}
+    return chunk
 
-grid[4][6]['block'] = 'flower'
+map = [[create_blank_chunk() for x in range(16)] for y in range(16)]
+
+for x in range(16):
+    for y in range(16):
+        if y == 0:
+            map[y][x] = basic_surface_chunk()
+        if y >= 1:
+            map[y][x] = basic_ground_chunk()
 
 ## Pygame Setup
 window = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -76,7 +65,6 @@ tiny_font = pygame.font.Font('font.ttf', 32)
 def draw_text(font, position, text, color):
     window.blit(font.render(text, True, color), position)
 
-
 ## Load Images
 images = {}
 for path in os.listdir('assets'):
@@ -84,7 +72,6 @@ for path in os.listdir('assets'):
 
 ## Grid
 grid_layer = pygame.Surface((WIDTH, HEIGHT), masks=(0, 0, 0))
-
 grid_layer.set_alpha(48)
 
 def draw_grid_lines():
@@ -106,8 +93,8 @@ def draw_grid_lines():
 def draw_blocks():
     for y in range(CELLS_Y):
         for x in range(CELLS_X):
-            if grid[y][x]['block']:
-                block = block_data[grid[y][x]['block']]
+            if map[chunk_y][chunk_x][y][x]['block']:
+                block = block_data[map[chunk_y][chunk_x][y][x]['block']]
                 texture = images[block['texture']]
                 window.blit(texture, (x * GRID_SIZE, y * GRID_SIZE))
 
@@ -116,7 +103,7 @@ def is_solid_grid(x, y):
     if x < 0 or x >= CELLS_X or y < 0 or y >= CELLS_Y:
         return False
 
-    block_name = grid[y][x]['block']
+    block_name = map[chunk_y][chunk_x][y][x]['block']
     if not block_name:
         return False
 
@@ -146,7 +133,7 @@ def get_nearby_solid_rects(rect):
 def hit_block(grid_position):
     grid_x, grid_y = grid_position
 
-    if grid[grid_y][grid_x]['block']:
+    if map[chunk_y][chunk_x][grid_y][grid_x]['block']:
         if random.randint(0, 1) == 0:
             dir = random.uniform(0, 6.28)
             speed = random.uniform(1, 5)
@@ -156,19 +143,19 @@ def hit_block(grid_position):
             dy = math.sin(dir) * speed
             size = random.uniform(3, 6)
             lifespan = random.randint(10, 40)
-            color = [max(0, c - 30) for c in block_data[grid[grid_y][grid_x]['block']]['color']]
+            color = [max(0, c - 30) for c in block_data[map[chunk_y][chunk_x][grid_y][grid_x]['block']]['color']]
 
             Particle((x, y), (dx, dy), size, lifespan, color)
 
-        grid[grid_y][grid_x]['health'] -= 1
-        if grid[grid_y][grid_x]['health'] <= 0:
+        map[chunk_y][chunk_x][grid_y][grid_x]['health'] -= 1
+        if map[chunk_y][chunk_x][grid_y][grid_x]['health'] <= 0:
             break_block(grid_position, '')
 
 def break_block(grid_position, tool):
     grid_x, grid_y = grid_position
-    drop = block_data[grid[grid_y][grid_x]['block']]['drop']
-    drop_min = block_data[grid[grid_y][grid_x]['block']]['drop_min']
-    drop_max = block_data[grid[grid_y][grid_x]['block']]['drop_max']
+    drop = block_data[map[chunk_y][chunk_x][grid_y][grid_x]['block']]['drop']
+    drop_min = block_data[map[chunk_y][chunk_x][grid_y][grid_x]['block']]['drop_min']
+    drop_max = block_data[map[chunk_y][chunk_x][grid_y][grid_x]['block']]['drop_max']
     if drop: give_player_item(drop, random.randint(drop_min, drop_max))
 
 
@@ -181,11 +168,11 @@ def break_block(grid_position, tool):
         dy = math.sin(dir) * speed
         size = random.uniform(3, 6)
         lifespan = random.randint(10, 40)
-        color = [max(0, c - 30) for c in block_data[grid[grid_y][grid_x]['block']]['color']]
+        color = [max(0, c - 30) for c in block_data[map[chunk_y][chunk_x][grid_y][grid_x]['block']]['color']]
 
         Particle((x, y), (dx, dy), size, lifespan, color)
 
-    grid[grid_y][grid_x] = {'block':'', 'health':0}
+    map[chunk_y][chunk_x][grid_y][grid_x] = {'block':'', 'health':0}
 
 ## Particles
 particles = []
@@ -220,9 +207,10 @@ class Player:
         self.velocity = [0, 0]
 
     def update(self):
+        global chunk_x, chunk_y
+
         self.velocity[1] += GRAVITY
 
-        #### Collision
         self.rect = pygame.Rect(
             self.position[0],
             self.position[1],
@@ -230,9 +218,8 @@ class Player:
             GRID_SIZE * 2
         )
 
-        ## Move X
+        ## Horizontal collision
         self.rect.x += self.velocity[0]
-
         for block_rect in get_nearby_solid_rects(self.rect):
             if self.rect.colliderect(block_rect):
                 if self.velocity[0] > 0:
@@ -240,11 +227,9 @@ class Player:
                 elif self.velocity[0] < 0:
                     self.rect.left = block_rect.right
 
-        ## Move Y
+        ## Vertical collision
         self.rect.y += self.velocity[1]
-
         self.on_ground = False
-
         for block_rect in get_nearby_solid_rects(self.rect):
             if self.rect.colliderect(block_rect):
                 if self.velocity[1] > 0:
@@ -256,20 +241,60 @@ class Player:
                     self.velocity[1] = 0
 
         self.position = [self.rect.x, self.rect.y]
-        ####
 
+        ## Chunk movement
+        changed_chunk = False
+
+        if self.position[0] >= CELLS_X * GRID_SIZE:
+            chunk_x += 1
+            self.position[0] = 1
+            changed_chunk = True
+
+        if self.position[0] < 0:
+            chunk_x -= 1
+            self.position[0] = CELLS_X * GRID_SIZE - GRID_SIZE - 1
+            changed_chunk = True
+
+        if self.position[1] >= CELLS_Y * GRID_SIZE:
+            chunk_y += 1
+            self.position[1] = 1
+            changed_chunk = True
+
+        if self.position[1] < 0:
+            chunk_y -= 1
+            self.position[1] = CELLS_Y * GRID_SIZE - GRID_SIZE - 1
+            changed_chunk = True
+
+        ## Re-check collision after entering new chunk
+        if changed_chunk:
+            self.rect.topleft = self.position
+
+            for block_rect in get_nearby_solid_rects(self.rect):
+                if self.rect.colliderect(block_rect):
+                    if self.velocity[1] >= 0:
+                        self.rect.bottom = block_rect.top
+                        self.velocity[1] = 0
+                        self.on_ground = True
+
+            self.position = [self.rect.x, self.rect.y]
+
+        ## Jumping
         if self.on_ground:
             if keys[pygame.K_SPACE]:
                 self.velocity[1] = -17
 
-        if keys[pygame.K_d]: self.velocity[0] += PLAYER_ACCEL
-        elif keys[pygame.K_a]: self.velocity[0] -= PLAYER_ACCEL
-        else: self.velocity[0] *= 0.85
+        ## Walking
+        if keys[pygame.K_d]:
+            self.velocity[0] += PLAYER_ACCEL
+        elif keys[pygame.K_a]:
+            self.velocity[0] -= PLAYER_ACCEL
+        else:
+            self.velocity[0] *= 0.85
+
         self.velocity[0] = min(MAX_PLAYER_SPEED, max(-MAX_PLAYER_SPEED, self.velocity[0]))
 
-
-
         window.blit(images['gleeb.png'], self.position)
+        
 player = Player((50, 50))
 
 ## Inventory
@@ -294,7 +319,6 @@ def take_item_from_player(item, count):
     if inventory[index]['count'] == 0:
         inventory[index]['item'] = ''
 
-
 def draw_inventory():
     for i in range(9):
         x = i * (GRID_SIZE)
@@ -312,7 +336,7 @@ def draw_inventory():
 ## Placing
 def place_block(grid_position, block):
     grid_x, grid_y = grid_position
-    grid[grid_y][grid_x] = {'block':block, 'health':block_data[block]['strength']}
+    map[chunk_y][chunk_x][grid_y][grid_x] = {'block':block, 'health':block_data[block]['strength']}
 
 ## Main Loop
 while True:
@@ -322,6 +346,9 @@ while True:
         if event.type == pygame.MOUSEWHEEL:
             selected_slot -= event.y
             selected_slot %= 9
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_F1:
+                debug = not debug
     
     ## Input Gathering
     mouse_pos = pygame.mouse.get_pos()
@@ -336,8 +363,10 @@ while True:
 
     ## Draw Grid
     grid_layer.fill((0, 0, 0))
-    #draw_grid_lines()
-
+    if debug:
+        draw_grid_lines()
+        draw_text(tiny_font, (4, 50), str(player.position), (255, 255, 255))
+    
     ## Update Player
     player.update()
 
@@ -352,7 +381,7 @@ while True:
     ## Breaking & Placing
     if mouse_down[0]: hit_block((mouse_grid_x, mouse_grid_y))
     if mouse_down[2]:
-        if not grid[mouse_grid_y][mouse_grid_x]['block']:
+        if not map[chunk_y][chunk_x][mouse_grid_y][mouse_grid_x]['block']:
             item = inventory[selected_slot]['item']
             if item:
                 block = item_data[item]['places']
