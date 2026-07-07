@@ -1,49 +1,68 @@
 {
     "grass":{
+        "name":"Grass Block",
         "strength":60,
         "texture":"grass.png",
         "passable":false,
         "color":[48, 255, 48],
         "drop":"dirt",
         "drop_min":1,
-        "drop_max":1
+        "drop_max":1,
+        "tool":"shovel"
     },
     "dirt":{
+        "name":"Dirt Block",
         "strength":60,
         "texture":"dirt.png",
         "passable":false,
         "color":[156, 90, 50],
         "drop":"dirt",
         "drop_min":1,
-        "drop_max":1
+        "drop_max":1,
+        "tool":"shovel"
     }, 
     "flower": {
+        "name":"Flower",
         "strength":1,
         "texture":"flower.png",
         "passable":true,
         "color":[180, 64, 122],
         "drop":"flower",
         "drop_min":1,
-        "drop_max":1
+        "drop_max":1,
+        "tool":"pickaxe"
     },
     "stone": {
+        "name":"Stone",
         "strength":120,
         "texture":"stone.png",
         "passable":false,
         "color":[107, 107, 107],
-        "tool":"pickaxe",
         "drop":"cobblestone",
         "drop_min":1,
-        "drop_max":1
+        "drop_max":1,
+        "tool":"pickaxe"
     },
     "cobblestone": {
+        "name":"Cobblestone",
         "strength":120,
         "texture":"cobblestone.png",
         "passable":false,
         "color":[107, 107, 107],
-        "tool":"pickaxe",
         "drop":"cobblestone",
         "drop_min":1,
-        "drop_max":1
+        "drop_max":1,
+        "tool":"pickaxe"
+    },
+    "oak_log": {
+        "name":"Oak Log",
+        "strength":120,
+        "texture":"oak_log.png",
+        "passable":false,
+        "color":[93, 46, 16],
+        "drop":"oak_log",
+        "drop_min":1,
+        "drop_max":1,
+        "tool":"axe"
     }
 }

@@ -1,14 +1,38 @@
 {
     "dirt":{
         "texture":"dirt.png",
-        "places":"dirt"
+        "places":"dirt",
+        "tool":"",
+        "efficiency":1
     },
     "flower":{
         "texture":"flower.png",
-        "places":"flower"
+        "places":"flower",
+        "tool":"",
+        "efficiency":1
     },
     "cobblestone":{
         "texture":"cobblestone.png",
-        "places":"cobblestone"
+        "places":"cobblestone",
+        "tool":"",
+        "efficiency":1
+    },
+    "wooden_pickaxe":{
+        "texture":"wooden_pickaxe.png",
+        "places":"",
+        "tool":"pickaxe",
+        "efficiency":1.5
+    },
+    "wooden_shovel":{
+        "texture":"wooden_shovel.png",
+        "places":"",
+        "tool":"shovel",
+        "efficiency":1.5
+    },
+    "oak_log":{
+        "texture":"oak_log.png",
+        "places":"oak_log",
+        "tool":"",
+        "efficiency":1
     }
 }
