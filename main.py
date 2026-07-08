@@ -28,6 +28,21 @@ with open('blocks.json') as file:
 with open('items.json') as file:
     item_data = json.load(file)
 
+## Placing
+def place_block(grid_position, block):
+    grid_x, grid_y = grid_position
+    map[chunk_y][chunk_x][grid_y][grid_x] = {'block':block, 'health':block_data[block]['strength']}
+
+## Structure
+def place_structure(root_position, id):
+    with open(f'structures/{id}.json') as file:
+        data = json.load(file)
+        for block in data:
+            relative_position = block['position']
+            block_name = block['block']
+            position = root_position[0] + relative_position[0], root_position[1] + relative_position[1]
+            place_block(position, block_name)
+
 ## Worldgen
 chunk_x = 0
 chunk_y = 0
@@ -35,10 +50,10 @@ def create_blank_chunk():
     return [[{'block':'', 'health':0} for x in range(CELLS_X)] for y in range(CELLS_Y)]
 
 def get_underground_block(chunk_y, local_y):
-    if chunk_y == 0:
+    if chunk_y < 2:
         return "dirt"
 
-    if chunk_y == 1:
+    if chunk_y == 2:
         dirt_chances = [
             1.0, 1.0, 1.0,
             0.9, 0.8, 0.7,
@@ -61,7 +76,12 @@ for global_x in range(CHUNKS_X * CELLS_X):
 
     chunk_x = global_x // CELLS_X
     local_x = global_x % CELLS_X
-
+    chunk_y = surface_y // CELLS_Y
+    if (14 >= local_x >= 2):
+        match random.randint(0, 12):
+            case 0: place_structure((local_x, (surface_y - 1) % CELLS_Y), "oak_tree")
+            case 1|2: place_block((local_x, (surface_y - 1) % CELLS_Y), 'flower')
+            case 3|4|5: place_block((local_x, (surface_y - 1) % CELLS_Y), 'bush')
     for global_y in range(surface_y, CHUNKS_Y * CELLS_Y):
         chunk_y = global_y // CELLS_Y
         local_y = global_y % CELLS_Y
@@ -457,11 +477,6 @@ def draw_inventory():
             window.blit(texture, (x+GRID_SIZE / 8, GRID_SIZE / 8))
         draw_text(tiny_font, (x + 6, 2), str(inventory[i]['count']), (255, 255, 255))
 
-## Placing
-def place_block(grid_position, block):
-    grid_x, grid_y = grid_position
-    map[chunk_y][chunk_x][grid_y][grid_x] = {'block':block, 'health':block_data[block]['strength']}
-
 give_player_item('oak_sapling', 1)
 give_player_item('wooden_axe', 1)
 
@@ -485,16 +500,6 @@ def random_tick():
     if map[chunk_y][chunk_x][y][x]['block'] == 'oak_sapling':
         if random.randint(0, 9) == 0:
             place_structure((x, y), 'oak_tree')
-
-## Structure
-def place_structure(root_position, id):
-    with open(f'structures/{id}.json') as file:
-        data = json.load(file)
-        for block in data:
-            relative_position = block['position']
-            block_name = block['block']
-            position = root_position[0] + relative_position[0], root_position[1] + relative_position[1]
-            place_block(position, block_name)
 
 ## Main Loop
 while True:

@@ -30,7 +30,18 @@
         "drop":"flower",
         "drop_min":1,
         "drop_max":1,
-        "tool":"pickaxe"
+        "tool":""
+    }, 
+    "bush": {
+        "name":"Bush",
+        "strength":1,
+        "texture":"bush.png",
+        "passable":true,
+        "color":[180, 64, 122],
+        "drop":"",
+        "drop_min":1,
+        "drop_max":1,
+        "tool":""
     },
     "stone": {
         "name":"Stone",
