@@ -9,6 +9,7 @@ pa = particle accelerate
 8. Going past the upper limit sends you into a pa pocket dimension for 3 seconds before teleporting you back.
 9. Doing #8 again in the same instance crashes the game COULD BE A FEATURE THO
 10. going to the left from first first chunk pa you and crash the game because you spawn under the surface
-11. Going to the left from the first chunk can make you permeate through matter, pa, and crash 
-12.~ Player can place blocks outside of reach~
-13. Issues caused by smaller screen sizes such as asa being able to crash the game by dragging 
+11. Going to the left from the first chunk can make you permeate through matter, pa, and crash
+12. ~Player can place blocks outside of reach~
+13. Issues caused by smaller screen sizes such as asa being able to crash the game by dragging and hard to click blocks
+14. tom is printing something every frame and it is super annoying
