@@ -8,6 +8,6 @@ pa = particle accelerate
 7. Player does not collide with blocks outside the edges of their chunk (can lead to softlocks when you go down or up)
 8. Going past the upper limit sends you into a pa pocket dimension for 3 seconds before teleporting you back.
 9. Doing #8 again in the same instance crashes the game COULD BE A FEATURE THO
-10. Going to a new chunk can pa you and crash the game because you spawn under the surface
-11. Going to a new chunk can make you permeate through matter, pa, and crash 
+10. going to the left from first first chunk pa you and crash the game because you spawn under the surface
+11. Going to the left from the first chunk can make you permeate through matter, pa, and crash 
 
