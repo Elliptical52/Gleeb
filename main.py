@@ -593,21 +593,21 @@ while True:
     player_rect = pygame.Rect(player.position, (GRID_SIZE, GRID_SIZE * 2))
     if debug: pygame.draw.rect(window, (255, 0, 0), player_rect, 3)
 
-    if mouse_down[0]:
-        if can_reach_block(player, mouse_grid_x, mouse_grid_y):
+    if can_reach_block(player, mouse_grid_x, mouse_grid_y):
+        if mouse_down[0]:
             hit_block((mouse_grid_x, mouse_grid_y))
 
-    if mouse_down[2]:
-        block_rect = pygame.Rect(mouse_grid_x * GRID_SIZE, mouse_grid_y * GRID_SIZE, GRID_SIZE, GRID_SIZE)
-        if debug: pygame.draw.rect(window, (255, 0, 0), block_rect, 3)
-        if not player_rect.colliderect(block_rect):
-            if not map[chunk_y][chunk_x][mouse_grid_y][mouse_grid_x]['block']:
-                item = inventory[selected_slot]['item']
-                if item:
-                    block = item_data[item]['places']
-                    if block:
-                        take_item_from_player(item, 1)
-                        place_block((mouse_grid_x, mouse_grid_y), block)
+        if mouse_down[2]:
+            block_rect = pygame.Rect(mouse_grid_x * GRID_SIZE, mouse_grid_y * GRID_SIZE, GRID_SIZE, GRID_SIZE)
+            if debug: pygame.draw.rect(window, (255, 0, 0), block_rect, 3)
+            if not player_rect.colliderect(block_rect):
+                if not map[chunk_y][chunk_x][mouse_grid_y][mouse_grid_x]['block']:
+                    item = inventory[selected_slot]['item']
+                    if item:
+                        block = item_data[item]['places']
+                        if block:
+                            take_item_from_player(item, 1)
+                            place_block((mouse_grid_x, mouse_grid_y), block)
 
     ## Particles
     for particle in particles:
