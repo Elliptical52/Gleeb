@@ -27,7 +27,7 @@ with open('blocks.json') as file:
 ## Load Item Data
 with open('items.json') as file:
     item_data = json.load(file)
-#hi
+
 ## Worldgen
 chunk_x = 0
 chunk_y = 0
@@ -84,6 +84,26 @@ window = pygame.display.set_mode((WIDTH, HEIGHT))
 clock = pygame.time.Clock()
 pygame.font.init()
 tiny_font = pygame.font.Font('font.ttf', 32)
+pygame.mixer.init()
+
+## Music
+songs = os.listdir('music')
+song_index = -1
+def shuffle_songs():
+    random.shuffle(songs)
+
+def next_song():
+    global song_index
+    song_index += 1
+    if song_index >= len(songs):
+        shuffle_songs()
+        song_index = 0
+    song = songs[song_index]
+    path = f'music/{song}'
+    pygame.mixer.music.load(path)
+    pygame.mixer.music.play()
+
+shuffle_songs()
 
 ## Font
 def draw_text(font, position, text, color):
@@ -502,6 +522,9 @@ while True:
     mouse_down = pygame.mouse.get_pressed()
     keys = pygame.key.get_pressed()
 
+    ## Music
+    if not pygame.mixer.music.get_busy(): next_song()
+    
     ## Clear Screen
     window.fill(BG_COLOR)
 
