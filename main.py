@@ -14,6 +14,7 @@ MAX_PLAYER_SPEED = 5
 BG_COLOR = (97, 185, 222)
 CHUNKS_X = 16
 CHUNKS_Y = 16
+PLAYER_REACH = 4 * GRID_SIZE
 image_scale = GRID_SIZE / 16
 
 ## Debug Mode
@@ -26,7 +27,7 @@ with open('blocks.json') as file:
 ## Load Item Data
 with open('items.json') as file:
     item_data = json.load(file)
-
+#hi
 ## Worldgen
 chunk_x = 0
 chunk_y = 0
@@ -263,6 +264,19 @@ def break_block(grid_position, tool):
         Particle((x, y), (dx, dy), size, lifespan, color)
 
     map[chunk_y][chunk_x][grid_y][grid_x] = {'block':'', 'health':0}
+
+def can_reach_block(player, grid_x, grid_y):
+    block_center_x = grid_x * GRID_SIZE + GRID_SIZE // 2
+    block_center_y = grid_y * GRID_SIZE + GRID_SIZE // 2
+
+    player_center_x = player.position[0] + GRID_SIZE // 2
+    player_center_y = player.position[1] + GRID_SIZE
+
+    dx = block_center_x - player_center_x
+    dy = block_center_y - player_center_y
+
+    distance = math.sqrt(dx*dx + dy*dy)
+    return distance <= PLAYER_REACH
 
 ## Particles
 particles = []
@@ -510,7 +524,8 @@ while True:
     ## Mouse Hover
     mouse_grid_x = mouse_pos[0] // GRID_SIZE
     mouse_grid_y = mouse_pos[1] // GRID_SIZE
-    pygame.draw.rect(grid_layer, (128, 128, 128), (mouse_grid_x * GRID_SIZE, mouse_grid_y * GRID_SIZE, GRID_SIZE, GRID_SIZE))
+    if can_reach_block(player, mouse_grid_x, mouse_grid_y):
+        pygame.draw.rect(grid_layer, (128, 128, 128), (mouse_grid_x * GRID_SIZE, mouse_grid_y * GRID_SIZE, GRID_SIZE, GRID_SIZE))
     
     ## Draw Block Info
     draw_block_info()
@@ -520,7 +535,9 @@ while True:
     if debug: pygame.draw.rect(window, (255, 0, 0), player_rect, 3)
 
     if mouse_down[0]:
-        hit_block((mouse_grid_x, mouse_grid_y))
+        if can_reach_block(player, mouse_grid_x, mouse_grid_y):
+            hit_block((mouse_grid_x, mouse_grid_y))
+
     if mouse_down[2]:
         block_rect = pygame.Rect(mouse_grid_x * GRID_SIZE, mouse_grid_y * GRID_SIZE, GRID_SIZE, GRID_SIZE)
         if debug: pygame.draw.rect(window, (255, 0, 0), block_rect, 3)
