@@ -249,22 +249,23 @@ def get_nearby_solid_rects(rect):
     return rects
 
 ## World Interaction
-def hit_block(grid_position):
+def hit_block(grid_position, particles=True):
     grid_x, grid_y = grid_position
 
     if map[chunk_y][chunk_x][grid_y][grid_x]['block']:
-        if random.randint(0, 1) == 0:
-            dir = random.uniform(0, 6.28)
-            speed = random.uniform(1, 5)
-            x = (grid_x * GRID_SIZE) + random.randint(0, GRID_SIZE)
-            y = (grid_y * GRID_SIZE) + random.randint(0, GRID_SIZE)
-            dx = math.cos(dir) * speed
-            dy = math.sin(dir) * speed
-            size = random.uniform(3, 6)
-            lifespan = random.randint(10, 40)
-            color = [max(0, c - 30) for c in block_data[map[chunk_y][chunk_x][grid_y][grid_x]['block']]['color']]
+        if particles:
+            if random.randint(0, 1) == 0:
+                dir = random.uniform(0, 6.28)
+                speed = random.uniform(1, 5)
+                x = (grid_x * GRID_SIZE) + random.randint(0, GRID_SIZE)
+                y = (grid_y * GRID_SIZE) + random.randint(0, GRID_SIZE)
+                dx = math.cos(dir) * speed
+                dy = math.sin(dir) * speed
+                size = random.uniform(3, 6)
+                lifespan = random.randint(10, 40)
+                color = [max(0, c - 30) for c in block_data[map[chunk_y][chunk_x][grid_y][grid_x]['block']]['color']]
 
-            Particle((x, y), (dx, dy), size, lifespan, color)
+                Particle((x, y), (dx, dy), size, lifespan, color)
 
         damage = 1
         block_tool = block_data[map[chunk_y][chunk_x][grid_y][grid_x]['block']]['tool']
@@ -277,31 +278,29 @@ def hit_block(grid_position):
                 
         map[chunk_y][chunk_x][grid_y][grid_x]['health'] -= damage
 
-
-
-
         if map[chunk_y][chunk_x][grid_y][grid_x]['health'] <= 0:
-            break_block(grid_position, '')
+            break_block(grid_position, particles)
 
-def break_block(grid_position, tool):
+def break_block(grid_position, particles):
     grid_x, grid_y = grid_position
     drop = block_data[map[chunk_y][chunk_x][grid_y][grid_x]['block']]['drop']
     drop_min = block_data[map[chunk_y][chunk_x][grid_y][grid_x]['block']]['drop_min']
     drop_max = block_data[map[chunk_y][chunk_x][grid_y][grid_x]['block']]['drop_max']
     if drop: give_player_item(drop, random.randint(drop_min, drop_max))
 
-    for i in range(15):
-        dir = random.uniform(0, 6.28)
-        speed = random.uniform(1, 5)
-        x = (grid_x * GRID_SIZE) + random.randint(0, GRID_SIZE)
-        y = (grid_y * GRID_SIZE) + random.randint(0, GRID_SIZE)
-        dx = math.cos(dir) * speed
-        dy = math.sin(dir) * speed
-        size = random.uniform(3, 6)
-        lifespan = random.randint(10, 40)
-        color = [max(0, c - 30) for c in block_data[map[chunk_y][chunk_x][grid_y][grid_x]['block']]['color']]
+    if particles:
+        for i in range(15):
+            dir = random.uniform(0, 6.28)
+            speed = random.uniform(1, 5)
+            x = (grid_x * GRID_SIZE) + random.randint(0, GRID_SIZE)
+            y = (grid_y * GRID_SIZE) + random.randint(0, GRID_SIZE)
+            dx = math.cos(dir) * speed
+            dy = math.sin(dir) * speed
+            size = random.uniform(3, 6)
+            lifespan = random.randint(10, 40)
+            color = [max(0, c - 30) for c in block_data[map[chunk_y][chunk_x][grid_y][grid_x]['block']]['color']]
 
-        Particle((x, y), (dx, dy), size, lifespan, color)
+            Particle((x, y), (dx, dy), size, lifespan, color)
 
     map[chunk_y][chunk_x][grid_y][grid_x] = {'block':'', 'health':0}
 
@@ -477,8 +476,9 @@ def draw_inventory():
             window.blit(texture, (x+GRID_SIZE / 8, GRID_SIZE / 8))
         draw_text(tiny_font, (x + 6, 2), str(inventory[i]['count']), (255, 255, 255))
 
-give_player_item('oak_sapling', 1)
 give_player_item('wooden_axe', 1)
+give_player_item('wooden_pickaxe', 1)
+give_player_item('wooden_shovel', 1)
 
 ## Block Info
 def draw_block_info():
@@ -500,6 +500,12 @@ def random_tick():
     if map[chunk_y][chunk_x][y][x]['block'] == 'oak_sapling':
         if random.randint(0, 9) == 0:
             place_structure((x, y), 'oak_tree')
+
+## Alerts
+def show_alert(position, texture):
+    scaled_texture = pygame.transform.scale_by(images[texture], 6/16)
+    window.blit(images['alert_frame.png'], position)
+    window.blit(scaled_texture, (position[0] + (GRID_SIZE * .2), position[1] + (GRID_SIZE * .2)))
 
 ## Main Loop
 while True:
@@ -548,7 +554,32 @@ while True:
 
     ## Draw Inventory
     draw_inventory()
+    
+    ## Out-of-Chunk Interaction
+    if player.position[1] // GRID_SIZE >= 14:
+        block = map[chunk_y + 1][chunk_x][0][player.position[0] // GRID_SIZE]
+        position = (player.position[0] + (GRID_SIZE / 5), HEIGHT - GRID_SIZE)
+        if block['block']:
+            show_alert(position, block_data[block['block']]['texture'])
 
+        if keys[pygame.K_LCTRL]:
+            chunk_y += 1
+            dy = 0 if player.position[1] // GRID_SIZE == 14 else 1
+            hit_block((player.position[0] // GRID_SIZE, dy), False)
+            chunk_y -= 1
+            
+    if player.position[1] // GRID_SIZE <= 0:
+        block = map[chunk_y - 1][chunk_x][15][player.position[0] // GRID_SIZE]
+        position = (player.position[0] + (GRID_SIZE / 5), 0)
+        if block['block']:
+            show_alert(position, block_data[block['block']]['texture'])
+
+        if keys[pygame.K_LCTRL]:
+            chunk_y -= 1
+            dy = 15 if player.position[1] // GRID_SIZE == 0 else 14
+            hit_block((player.position[0] // GRID_SIZE, dy), False)
+            chunk_y += 1
+    
     ## Mouse Hover
     mouse_grid_x = mouse_pos[0] // GRID_SIZE
     mouse_grid_y = mouse_pos[1] // GRID_SIZE

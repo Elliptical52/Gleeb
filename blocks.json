@@ -37,7 +37,7 @@
         "strength":1,
         "texture":"bush.png",
         "passable":true,
-        "color":[180, 64, 122],
+        "color":[48, 255, 48],
         "drop":"",
         "drop_min":1,
         "drop_max":1,
