@@ -29,6 +29,4 @@ def get_surface_height(global_x):
     base_height = 30
 
     small_hills = anchored_noise_1d(global_x, scale=20, amplitude=2)
-    big_landforms = anchored_noise_1d(global_x, scale=80, amplitude=5)
-
-    return int(base_height + small_hills + big_landforms)
+    return int(base_height + small_hills)

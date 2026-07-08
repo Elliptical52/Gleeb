@@ -317,6 +317,60 @@ def can_reach_block(player, grid_x, grid_y):
     distance = math.sqrt(dx*dx + dy*dy)
     return distance <= PLAYER_REACH
 
+## UI
+ui = []
+class Button: 
+    def __init__(self, position, size, texture, callback, enabled):
+        ui.append(self)
+        self.position = position
+        self.size = size
+        self.rect = pygame.Rect(self.position, self.size)
+        self.texture = images[texture]
+        self.callback = callback
+        self.enabled = enabled
+
+    def update(self):
+        if self.enabled:
+            self.hovered = self.rect.collidepoint(mouse_pos)
+            if self.hovered: pygame.draw.rect(grid_layer, (48, 48, 48), self.rect)
+
+            if self.hovered and mouse_down[0]: self.callback()
+
+            window.blit(self.texture, self.position)
+
+
+menu_open = False
+def open_menu():
+    for element in constant_ui:
+        element.enabled = False
+    for element in menu_ui:
+        element.enabled = True
+
+    global menu_open
+    menu_open = True
+
+def close_menu():
+    for element in constant_ui:
+        element.enabled = True
+    for element in menu_ui:
+        element.enabled = False
+    
+    global menu_open
+    menu_open = False
+
+menu_button = Button(
+    ((CELLS_X-1)*GRID_SIZE, 0),
+    (GRID_SIZE, GRID_SIZE),
+    'menu_button.png', open_menu, True)
+
+resume_game_button = Button(
+    (GRID_SIZE * 4, GRID_SIZE * 8),
+    (GRID_SIZE * 8, GRID_SIZE),
+    'resume_game_button.png', close_menu, False)
+
+constant_ui = [menu_button]
+menu_ui = [resume_game_button]
+
 ## Particles
 particles = []
 class Particle:
@@ -615,6 +669,9 @@ while True:
 
     ## Update World
     random_tick()
+
+    ## UI
+    for element in ui: element.update()
 
     ## Update Screen
     window.blit(grid_layer, (0, 0))
