@@ -320,56 +320,60 @@ def can_reach_block(player, grid_x, grid_y):
 ## UI
 ui = []
 class Button: 
-    def __init__(self, position, size, texture, callback, enabled):
+    def __init__(self, position, size, texture, callback):
         ui.append(self)
         self.position = position
         self.size = size
         self.rect = pygame.Rect(self.position, self.size)
         self.texture = images[texture]
         self.callback = callback
-        self.enabled = enabled
 
     def update(self):
-        if self.enabled:
-            self.hovered = self.rect.collidepoint(mouse_pos)
-            if self.hovered: pygame.draw.rect(grid_layer, (48, 48, 48), self.rect)
+        self.hovered = self.rect.collidepoint(mouse_pos)
+        if self.hovered: pygame.draw.rect(grid_layer, (48, 48, 48), self.rect)
 
-            if self.hovered and mouse_down[0]: self.callback()
+        if self.hovered and mouse_down[0]: self.callback()
 
-            window.blit(self.texture, self.position)
+        window.blit(self.texture, self.position)
 
+def use_menu_ui():
+    global ui_group
+    ui_group = menu_ui
 
-menu_open = False
-def open_menu():
-    for element in constant_ui:
-        element.enabled = False
-    for element in menu_ui:
-        element.enabled = True
+def use_game_ui():
+    global ui_group
+    ui_group = game_ui
 
-    global menu_open
-    menu_open = True
-
-def close_menu():
-    for element in constant_ui:
-        element.enabled = True
-    for element in menu_ui:
-        element.enabled = False
-    
-    global menu_open
-    menu_open = False
+def use_crafting_ui():
+    global ui_group
+    ui_group = crafting_ui
 
 menu_button = Button(
     ((CELLS_X-1)*GRID_SIZE, 0),
     (GRID_SIZE, GRID_SIZE),
-    'menu_button.png', open_menu, True)
+    'menu_button.png', use_menu_ui)
+
+crafting_button = Button(
+    ((CELLS_X-2)*GRID_SIZE, 0),
+    (GRID_SIZE, GRID_SIZE),
+    'crafting_button.png', use_crafting_ui)
 
 resume_game_button = Button(
     (GRID_SIZE * 4, GRID_SIZE * 8),
     (GRID_SIZE * 8, GRID_SIZE),
-    'resume_game_button.png', close_menu, False)
+    'resume_game_button.png', use_game_ui)
 
-constant_ui = [menu_button]
-menu_ui = [resume_game_button]
+quit_game_button = Button(
+    (GRID_SIZE * 4, GRID_SIZE * 10),
+    (GRID_SIZE * 8, GRID_SIZE),
+    'quit_game_button.png', quit
+)
+
+game_ui = [menu_button, crafting_button]
+menu_ui = [resume_game_button, quit_game_button]
+crafting_ui = []
+
+ui_group = game_ui
 
 ## Particles
 particles = []
@@ -582,6 +586,10 @@ while True:
             if event.key == pygame.K_8: selected_slot = 7
             if event.key == pygame.K_9: selected_slot = 8
 
+            if event.key == pygame.K_ESCAPE:
+                if ui_group == game_ui: use_menu_ui()
+                else: use_game_ui()
+
     ## Input Gathering
     mouse_pos = pygame.mouse.get_pos()
     mouse_down = pygame.mouse.get_pressed()
@@ -671,7 +679,9 @@ while True:
     random_tick()
 
     ## UI
-    for element in ui: element.update()
+    for element in ui_group:
+        print(element)
+        element.update()
 
     ## Update Screen
     window.blit(grid_layer, (0, 0))
