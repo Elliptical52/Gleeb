@@ -1,5 +1,8 @@
 import math, random
 
+seed = random.randint(0, 99999)
+random.seed(seed)
+
 def smoothstep(t):
     return t * t * (3 - 2 * t)
 
@@ -21,6 +24,7 @@ def value_noise_1d(x, scale, amplitude):
 
 def anchored_noise_1d(x, scale, amplitude):
     return value_noise_1d(x, scale, amplitude) - value_noise_1d(0, scale, amplitude)
+
 def get_surface_height(global_x):
     base_height = 8
 
