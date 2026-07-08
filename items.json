@@ -30,7 +30,7 @@
         "efficiency":1.5
     },
     "wooden_axe":{
-        "texture":"unknown.png",
+        "texture":"wooden_axe.png",
         "places":"",
         "tool":"axe",
         "efficiency":1.5
