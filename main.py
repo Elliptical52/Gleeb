@@ -680,7 +680,6 @@ while True:
 
     ## UI
     for element in ui_group:
-        print(element)
         element.update()
 
     ## Update Screen
