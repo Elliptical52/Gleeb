@@ -1,0 +1,6 @@
+{
+    "fly": {
+        "texture":"fly.png",
+        "health":10
+    }
+}

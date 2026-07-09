@@ -384,6 +384,10 @@ ui_group = game_ui
 with open('recipes.json') as file:
     recipes = json.load(file)
 
+## Load Creatures
+with open('creatures.json') as file:
+    creature_data = json.load(file)
+
 unlocked_recipes = []
 
 ## Recipes
@@ -395,6 +399,51 @@ unlock_recipe('stick')
 unlock_recipe('wooden_axe')
 unlock_recipe('wooden_pickaxe')
 unlock_recipe('wooden_shovel')
+
+## Creatures
+creatures = []
+class Creature:
+    def __init__(self, chunk_position, position, id):
+        creatures.append(self)
+        self.chunk_x, self.chunk_y = chunk_position
+        self.position = list(position)
+        self.id = id
+        self.data = creature_data[self.id]
+        self.health = self.data['health']
+        self.x_velocity = 0
+        self.y_velocity = 0
+
+    def update(self):
+        self.position[0] += self.x_velocity
+        self.position[1] += self.y_velocity
+
+        if self.position[0] >= CELLS_X * GRID_SIZE:
+            self.chunk_x += 1
+            self.position[0] = 1
+        if self.position[0] <= 0:
+            self.chunk_x -= 1
+            self.position[0] = (CELLS_X * GRID_SIZE) - 1
+        if self.position[1] >= CELLS_Y * GRID_SIZE:
+            self.chunk_y += 1
+            self.position[1] = 1
+        if self.position[1] <= 0:
+            self.chunk_y -= 1
+            self.position[1] = (CELLS_Y * GRID_SIZE) - 1
+        self.draw()
+
+    def draw(self):
+        if self.chunk_x == chunk_x and self.chunk_y == chunk_y:
+            window.blit(images[self.data['texture']], self.position)
+
+class BugCreature(Creature):
+    def update(self):
+        if random.randint(0, 5) == 0:
+            self.x_velocity = random.uniform(-1.5, 1.5)
+            self.y_velocity = random.uniform(-1.5, 1.5)
+
+        return super().update()
+
+for i in range(4): BugCreature((0, 1), (300, 300), 'fly')
 
 
 ## Crafting
@@ -682,6 +731,9 @@ while True:
 
     ## Draw Blocks
     draw_blocks()
+
+    ## Creatures
+    for creature in creatures: creature.update()
 
     ## Draw Grid
     grid_layer.fill((0, 0, 0))
