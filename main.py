@@ -722,6 +722,21 @@ def show_alert(position, texture):
     window.blit(images['alert_frame.png'], position)
     window.blit(scaled_texture, (position[0] + (GRID_SIZE * .2), position[1] + (GRID_SIZE * .2)))
 
+## Console
+console_open = False
+console_input = ''
+def console_run(command):
+    parameters = command.split(' ')
+    match parameters[0]:
+        case 'give':
+            if len(parameters) == 2: give_player_item(parameters[1], 1)
+            elif len(parameters) == 3: give_player_item(parameters[1], int(parameters[2]))
+        case 'place':
+            if len(parameters) == 2: 
+                block = parameters[1]
+                place_block((mouse_grid_x, mouse_grid_y), block)
+        
+
 ## Main Loop
 while True:
     ## Event Loop
@@ -746,6 +761,21 @@ while True:
             if event.key == pygame.K_ESCAPE:
                 if ui_group == game_ui: use_menu_ui()
                 else: use_game_ui()
+
+            if console_open:
+                if event.key == pygame.K_RETURN:
+                    console_run(console_input)
+                    console_open = False
+                    console_input = ''
+                elif event.key == pygame.K_BACKSPACE:
+                    console_input = console_input[:-1]
+                else:
+                    console_input += event.unicode
+            else:
+                if event.key == pygame.K_SLASH:
+    
+                    console_open = True
+
 
     ## Input Gathering
     mouse_pos = pygame.mouse.get_pos()
@@ -845,6 +875,10 @@ while True:
     ## Crafting UI
     if ui_group == crafting_ui:
         draw_crafting_ui()
+
+    ## Console
+    if console_open:
+        draw_text(tiny_font, (4, 300), console_input, (255, 255, 255))
 
     ## Update Screen
     window.blit(grid_layer, (0, 0))
