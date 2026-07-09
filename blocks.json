@@ -97,5 +97,16 @@
         "drop_min":1,
         "drop_max":1,
         "tool":""
+    },
+    "oak_planks": {
+        "name":"Oak Planks",
+        "strength":120,
+        "texture":"oak_planks.png",
+        "passable":false,
+        "color":[93, 46, 16],
+        "drop":"oak_planks",
+        "drop_min":1,
+        "drop_max":1,
+        "tool":"axe"
     }
 }

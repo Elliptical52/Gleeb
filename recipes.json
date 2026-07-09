@@ -1,0 +1,35 @@
+{
+    "oak_planks": {
+        "number":4,
+        "ingredients":{
+            "oak_log":1
+        }
+    },
+    "stick":{
+        "number":4,
+        "ingredients":{
+            "oak_planks":2
+        }
+    },
+    "wooden_axe": {
+        "number":1,
+        "ingredients":{
+            "stick":2,
+            "oak_planks":3
+        }
+    },
+    "wooden_pickaxe": {
+        "number":1,
+        "ingredients":{
+            "stick":2,
+            "oak_planks":3
+        }
+    },
+    "wooden_shovel": {
+        "number":1,
+        "ingredients":{
+            "stick":2,
+            "oak_planks":1
+        }
+    }
+}

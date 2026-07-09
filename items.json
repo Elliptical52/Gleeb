@@ -46,5 +46,17 @@
         "places":"oak_sapling",
         "tool":"",
         "efficiency":1
+    },
+    "stick":{
+        "texture":"stick.png",
+        "places":"",
+        "tool":"",
+        "efficiency":1
+    },
+    "oak_planks":{
+        "texture":"oak_planks.png",
+        "places":"oak_planks",
+        "tool":"",
+        "efficiency":1
     }
 }

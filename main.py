@@ -353,7 +353,7 @@ menu_button = Button(
     (GRID_SIZE, GRID_SIZE),
     'menu_button.png', use_menu_ui)
 
-crafting_button = Button(
+crafting_menu_button = Button(
     ((CELLS_X-2)*GRID_SIZE, 0),
     (GRID_SIZE, GRID_SIZE),
     'crafting_button.png', use_crafting_ui)
@@ -369,11 +369,85 @@ quit_game_button = Button(
     'quit_game_button.png', quit
 )
 
-game_ui = [menu_button, crafting_button]
+exit_crafting_button = Button(
+    (GRID_SIZE*0.75, 2*GRID_SIZE),
+    (GRID_SIZE, GRID_SIZE),
+    'x_button.png', use_game_ui)
+
+game_ui = [menu_button, crafting_menu_button]
 menu_ui = [resume_game_button, quit_game_button]
-crafting_ui = []
+crafting_ui = [exit_crafting_button]
 
 ui_group = game_ui
+
+## Load Recipes
+with open('recipes.json') as file:
+    recipes = json.load(file)
+
+unlocked_recipes = []
+
+## Recipes
+def unlock_recipe(id):
+    unlocked_recipes.append(id)
+    
+unlock_recipe('oak_planks')
+unlock_recipe('stick')
+unlock_recipe('wooden_axe')
+unlock_recipe('wooden_pickaxe')
+unlock_recipe('wooden_shovel')
+
+
+## Crafting
+def draw_crafting_ui():
+    y = GRID_SIZE * 2
+    for recipe_id in unlocked_recipes:
+        x = GRID_SIZE * 2
+
+        rect = pygame.Rect(x-(GRID_SIZE // 4), y-(GRID_SIZE // 4), (GRID_SIZE * 12)+(GRID_SIZE // 2), GRID_SIZE+(GRID_SIZE // 2))
+        hovered  = rect.collidepoint(mouse_pos)
+
+        color = (78, 68, 48) if hovered else (58, 48, 28)
+
+        pygame.draw.rect(window, color, rect)
+        recipe = recipes[recipe_id]
+
+        ingredients = recipe['ingredients'].items()
+        i = 0
+        count = len(ingredients)
+        for ingredient, number in ingredients:
+            texture = images[item_data[ingredient]['texture']]
+
+            window.blit(texture, (x, y))
+            draw_text(tiny_font, (x, y), str(number), (255, 255, 255))
+            x += GRID_SIZE + 8
+            i += 1
+
+            if i <= count - 1: 
+                window.blit(images['plus.png'], (x, y))
+            else:
+                window.blit(images['arrow_right.png'], (x, y))
+            x += GRID_SIZE + 8
+
+        texture = images[item_data[recipe_id]['texture']]
+        number = recipe['number']
+
+        if hovered and mouse_down[0]:
+            use_game_ui()
+            can_craft = True
+            for ingredient, number in ingredients:
+                if items_in_inventory(ingredient) < number:
+                    can_craft = False
+                    
+            if can_craft:
+                for ingredient, number in ingredients:
+                    take_item_from_player(ingredient, number)
+                
+                number = recipe['number']
+                give_player_item(recipe_id, number)
+        
+        window.blit(texture, (x, y))
+        draw_text(tiny_font, (x, y), str(number), (255, 255, 255))
+        y += GRID_SIZE * 1.5
 
 ## Particles
 particles = []
@@ -534,9 +608,14 @@ def draw_inventory():
             window.blit(texture, (x+GRID_SIZE / 8, GRID_SIZE / 8))
         draw_text(tiny_font, (x + 6, 2), str(inventory[i]['count']), (255, 255, 255))
 
-give_player_item('wooden_axe', 1)
-give_player_item('wooden_pickaxe', 1)
-give_player_item('wooden_shovel', 1)
+def items_in_inventory(item):
+    inventory_items = [slot['item'] for slot in inventory]
+    try:
+        index = inventory_items.index(item)
+        return inventory[index]['count']
+    except:
+        return 0
+
 
 ## Block Info
 def draw_block_info():
@@ -680,8 +759,11 @@ while True:
 
     ## UI
     for element in ui_group:
-        print(element)
         element.update()
+
+    ## Crafting UI
+    if ui_group == crafting_ui:
+        draw_crafting_ui()
 
     ## Update Screen
     window.blit(grid_layer, (0, 0))
