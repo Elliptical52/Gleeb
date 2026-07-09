@@ -12,5 +12,5 @@ pa = particle accelerate
 11. Going to the left from the first chunk can make you permeate through matter, pa, and crash
 12. ~Player can place blocks outside of reach~
 13. Issues caused by smaller screen sizes such as asa being able to crash the game by dragging and hard to click blocks
-14. tom is printing something every frame and it is super annoying
+14. ~tom is printing something every frame and it is super annoying~
 15. flies can fly through blocks
