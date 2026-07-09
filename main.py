@@ -31,7 +31,7 @@ with open('items.json') as file:
 ## Placing
 def place_block(grid_position, block):
     grid_x, grid_y = grid_position
-    map[chunk_y][chunk_x][grid_y][grid_x] = {'block':block, 'health':block_data[block]['strength']}
+    map[chunk_y][chunk_x][grid_y][grid_x] = {'block':block, 'health':block_data[block]['health']}
 
 ## Structure
 def place_structure(root_position, id):
@@ -42,6 +42,11 @@ def place_structure(root_position, id):
             block_name = block['block']
             position = root_position[0] + relative_position[0], root_position[1] + relative_position[1]
             place_block(position, block_name)
+
+## Load Images
+images = {}
+for path in os.listdir('assets'):
+    images[path] = pygame.transform.scale_by(pygame.image.load('assets/'+path), image_scale)
 
 ## Worldgen
 chunk_x = 0
@@ -93,7 +98,7 @@ for global_x in range(CHUNKS_X * CELLS_X):
 
         map[chunk_y][chunk_x][local_y][local_x] = {
             "block": block,
-            "health": block_data[block]["strength"]
+            "health": block_data[block]["health"]
         }
 
 chunk_x = 0
@@ -102,6 +107,7 @@ chunk_y = 0
 ## Pygame Setup
 window = pygame.display.set_mode((WIDTH, HEIGHT))
 clock = pygame.time.Clock()
+pygame.display.set_icon(pygame.image.load('assets/logo.png'))
 pygame.font.init()
 tiny_font = pygame.font.Font('font.ttf', 32)
 pygame.mixer.init()
@@ -128,11 +134,6 @@ shuffle_songs()
 ## Font
 def draw_text(font, position, text, color):
     window.blit(font.render(text, True, color), position)
-
-## Load Images
-images = {}
-for path in os.listdir('assets'):
-    images[path] = pygame.transform.scale_by(pygame.image.load('assets/'+path), image_scale)
 
 ## Grid
 grid_layer = pygame.Surface((WIDTH, HEIGHT), masks=(0, 0, 0))
@@ -253,6 +254,8 @@ def hit_block(grid_position, particles=True):
     grid_x, grid_y = grid_position
 
     if map[chunk_y][chunk_x][grid_y][grid_x]['block']:
+        if block_data[map[chunk_y][chunk_x][grid_y][grid_x]['block']]['health'] == -1: return
+        
         if particles:
             if random.randint(0, 1) == 0:
                 dir = random.uniform(0, 6.28)
@@ -266,7 +269,6 @@ def hit_block(grid_position, particles=True):
                 color = [max(0, c - 30) for c in block_data[map[chunk_y][chunk_x][grid_y][grid_x]['block']]['color']]
 
                 Particle((x, y), (dx, dy), size, lifespan, color)
-
         damage = 1
         block_tool = block_data[map[chunk_y][chunk_x][grid_y][grid_x]['block']]['tool']
         held_item = inventory[selected_slot]['item']
@@ -388,17 +390,11 @@ with open('recipes.json') as file:
 with open('creatures.json') as file:
     creature_data = json.load(file)
 
-unlocked_recipes = []
+unlocked_recipes = ['oak_planks', 'stick', 'wooden_axe', 'wooden_pickaxe', 'wooden_shovel']
 
 ## Recipes
 def unlock_recipe(id):
     unlocked_recipes.append(id)
-    
-unlock_recipe('oak_planks')
-unlock_recipe('stick')
-unlock_recipe('wooden_axe')
-unlock_recipe('wooden_pickaxe')
-unlock_recipe('wooden_shovel')
 
 ## Creatures
 creatures = []
@@ -444,7 +440,6 @@ class BugCreature(Creature):
         return super().update()
 
 for i in range(4): BugCreature((0, 1), (300, 300), 'fly')
-
 
 ## Crafting
 def draw_crafting_ui():
@@ -532,15 +527,35 @@ class Player:
 
     def update(self):
         global chunk_x, chunk_y
-
-        self.velocity[1] += GRAVITY
-
         self.rect = pygame.Rect(
             self.position[0],
             self.position[1],
             GRID_SIZE,
             GRID_SIZE * 2
         )
+
+
+        ## Water check
+        self.in_water = False
+        left = self.rect.left // GRID_SIZE
+        right = self.rect.right // GRID_SIZE
+        top = self.rect.top // GRID_SIZE
+        bottom = self.rect.bottom // GRID_SIZE
+
+        for y in range(top, bottom + 1):
+            for x in range(left, right + 1):
+                try:
+                    block = map[chunk_y][chunk_x][y][x]["block"]
+                    if block == "water":
+                        self.in_water = True
+                        break
+                except IndexError:
+                    pass
+            if self.in_water:
+                break
+        
+        if self.in_water: self.velocity[1] += GRAVITY / 10
+        else: self.velocity[1] += GRAVITY
 
         ## Horizontal collision
         self.rect.x += self.velocity[0]
@@ -565,6 +580,9 @@ class Player:
                     self.velocity[1] = 0
 
         self.position = [self.rect.x, self.rect.y]
+
+        
+
 
         ## Chunk movement
         changed_chunk = False
@@ -607,15 +625,27 @@ class Player:
             if keys[pygame.K_SPACE]:
                 self.velocity[1] = -17
 
+        ## Swimming
+        if self.in_water:
+            self.velocity[1] *= 0.9  # water drag
+
+            if keys[pygame.K_SPACE]:
+                self.velocity[1] -= 0.7
+            if keys[pygame.K_LSHIFT]:
+                self.velocity[1] += 0.5
+
         ## Walking
+        move_accel = PLAYER_ACCEL * (0.4 if self.in_water else 1)
+        max_speed = MAX_PLAYER_SPEED * (0.5 if self.in_water else 1)
+
         if keys[pygame.K_d]:
-            self.velocity[0] += PLAYER_ACCEL
+            self.velocity[0] += move_accel
         elif keys[pygame.K_a]:
-            self.velocity[0] -= PLAYER_ACCEL
+            self.velocity[0] -= move_accel
         else:
             self.velocity[0] *= 0.85
 
-        self.velocity[0] = min(MAX_PLAYER_SPEED, max(-MAX_PLAYER_SPEED, self.velocity[0]))
+        self.velocity[0] = min(max_speed, max(-max_speed, self.velocity[0]))
 
         window.blit(images['gleeb.png'], self.position)
         
@@ -665,7 +695,6 @@ def items_in_inventory(item):
     except:
         return 0
 
-
 ## Block Info
 def draw_block_info():
     block = map[chunk_y][chunk_x][mouse_grid_y][mouse_grid_x]
@@ -675,7 +704,7 @@ def draw_block_info():
     health = block['health']
     draw_text(tiny_font, (4, HEIGHT - 100), name, (255, 255, 255))
     draw_text(tiny_font, (4, HEIGHT - 80), id, (255, 255, 255))
-    draw_text(tiny_font, (4, HEIGHT - 60), str(health), (255, 255, 255))
+    draw_text(tiny_font, (4, HEIGHT - 60), str(health) if health!=-1 else 'Unbreakable', (255, 255, 255))
 
 ## Random Tick
 def random_tick():
@@ -729,11 +758,14 @@ while True:
     ## Clear Screen
     window.fill(BG_COLOR)
 
-    ## Draw Blocks
-    draw_blocks()
-
     ## Creatures
     for creature in creatures: creature.update()
+
+    ## Update Player
+    player.update()
+
+    ## Draw Blocks
+    draw_blocks()
 
     ## Draw Grid
     grid_layer.fill((0, 0, 0))
@@ -742,9 +774,6 @@ while True:
         draw_text(tiny_font, (4, 50), str(player.position), (255, 255, 255))
         draw_text(tiny_font, (4, 80), f'[{chunk_x}, {chunk_y}]', (255, 255, 255))
     
-    ## Update Player
-    player.update()
-
     ## Draw Inventory
     draw_inventory()
     
