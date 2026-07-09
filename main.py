@@ -398,6 +398,7 @@ def unlock_recipe(id):
 
 ## Creatures
 creatures = []
+
 class Creature:
     def __init__(self, chunk_position, position, id):
         creatures.append(self)
@@ -408,28 +409,88 @@ class Creature:
         self.health = self.data['health']
         self.x_velocity = 0
         self.y_velocity = 0
+        self.texture = images[self.data['texture']]
+        self.rect = pygame.Rect(self.position, self.texture.get_size())
+        self.size = self.texture.get_size()
+
+    def collide_x(self):
+        rect = self.texture.get_rect(topleft=(
+            self.position[0] + self.x_velocity,
+            self.position[1]
+        ))
+
+        left = rect.left // GRID_SIZE
+        right = (rect.right - 1) // GRID_SIZE
+        top = rect.top // GRID_SIZE
+        bottom = (rect.bottom - 1) // GRID_SIZE
+
+        for y in range(top, bottom + 1):
+            for x in range(left, right + 1):
+                if not (0 <= x < CELLS_X and 0 <= y < CELLS_Y):
+                    continue
+
+                block = map[self.chunk_y][self.chunk_x][y][x]['block']
+                if block and not block_data[block]['passable']:
+                    return True
+
+        return False
+
+
+    def collide_y(self):
+        rect = self.texture.get_rect(topleft=(
+            self.position[0],
+            self.position[1] + self.y_velocity
+        ))
+
+        left = rect.left // GRID_SIZE
+        right = (rect.right - 1) // GRID_SIZE
+        top = rect.top // GRID_SIZE
+        bottom = (rect.bottom - 1) // GRID_SIZE
+
+        for y in range(top, bottom + 1):
+            for x in range(left, right + 1):
+                if not (0 <= x < CELLS_X and 0 <= y < CELLS_Y):
+                    continue
+
+                block = map[self.chunk_y][self.chunk_x][y][x]['block']
+                if block and not block_data[block]['passable']:
+                    return True
+
+        return False
+        
+    def current_block(self):
+        grid_x = int((self.position[0] + (self.size[0] / 2)) // GRID_SIZE)
+        grid_y = int((self.position[1] + (self.size[1] / 2)) // GRID_SIZE)
+
+        return map[self.chunk_y][self.chunk_x][grid_y][grid_x]
 
     def update(self):
         self.position[0] += self.x_velocity
         self.position[1] += self.y_velocity
+        self.rect = pygame.Rect(self.position, self.texture.get_size())
 
         if self.position[0] >= CELLS_X * GRID_SIZE:
             self.chunk_x += 1
             self.position[0] = 1
+
         if self.position[0] <= 0:
             self.chunk_x -= 1
             self.position[0] = (CELLS_X * GRID_SIZE) - 1
+
         if self.position[1] >= CELLS_Y * GRID_SIZE:
             self.chunk_y += 1
             self.position[1] = 1
+
         if self.position[1] <= 0:
             self.chunk_y -= 1
             self.position[1] = (CELLS_Y * GRID_SIZE) - 1
+
         self.draw()
 
     def draw(self):
         if self.chunk_x == chunk_x and self.chunk_y == chunk_y:
-            window.blit(images[self.data['texture']], self.position)
+            window.blit(self.texture, self.position)
+
 
 class BugCreature(Creature):
     def update(self):
@@ -437,9 +498,45 @@ class BugCreature(Creature):
             self.x_velocity = random.uniform(-1.5, 1.5)
             self.y_velocity = random.uniform(-1.5, 1.5)
 
+        if self.collide_x():
+            self.x_velocity *= -1
+
+        if self.collide_y():
+            self.y_velocity *= -1
+
         return super().update()
 
-for i in range(4): BugCreature((0, 1), (300, 300), 'fly')
+
+class AquaticCreature(Creature):
+    def update(self):
+        self.x_velocity *= 0.99
+        self.y_velocity *= 0.97
+
+        if random.randint(0, 30) == 0:
+            self.x_velocity = random.uniform(-2, 2)
+
+        if random.randint(0, 180) == 0:
+            self.y_velocity = random.uniform(-1.5, 1.5)
+
+        inside_block = self.current_block()
+
+        if inside_block['block'] != 'water':
+            self.y_velocity += GRAVITY
+
+        if self.collide_x():
+            self.x_velocity = 0
+
+        if self.collide_y():
+            self.y_velocity = 0
+
+        return super().update()
+
+creature_types = {'bug':BugCreature, 'aquatic':AquaticCreature}
+
+def spawn(creature, chunk_pos, local_pos):
+    data = creature_data[creature]
+    creature_type = creature_types[data['ai']]
+    creature_type(chunk_pos, local_pos, creature)
 
 ## Crafting
 def draw_crafting_ui():
@@ -735,7 +832,9 @@ def console_run(command):
             if len(parameters) == 2: 
                 block = parameters[1]
                 place_block((mouse_grid_x, mouse_grid_y), block)
-        
+        case 'spawn':
+            if len(parameters) == 2:
+                spawn(parameters[1], (chunk_x, chunk_y), mouse_pos)
 
 ## Main Loop
 while True:
@@ -773,9 +872,7 @@ while True:
                     console_input += event.unicode
             else:
                 if event.key == pygame.K_SLASH:
-    
                     console_open = True
-
 
     ## Input Gathering
     mouse_pos = pygame.mouse.get_pos()
