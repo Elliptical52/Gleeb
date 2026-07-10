@@ -93,7 +93,7 @@
         "drop_chance":0.2,
         "drop_min":1,
         "drop_max":1,
-        "tool":""
+        "tool":"sword"
     },
     "oak_sapling": {
         "name":"Oak Sapling",
@@ -130,5 +130,18 @@
         "drop_min":0,
         "drop_max":0,
         "tool":""
+    },
+    "iron_ore": {
+        "name":"Iron Ore",
+        "health":150,
+        "texture":"iron_ore.png",
+        "passable":false,
+        "color":[169, 137, 113],
+        "drop":"",
+        "drop_chance":1,
+        "drop_min":1,
+        "drop_max":3,
+        "tool":"pickaxe"
     }
+
 }

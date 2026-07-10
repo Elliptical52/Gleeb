@@ -31,5 +31,40 @@
             "stick":2,
             "oak_planks":1
         }
+    },
+    "wooden_sword": {
+        "number":1,
+        "ingredients":{
+            "stick":2,
+            "oak_planks":2
+        }
+    },
+    "stone_axe": {
+        "number":1,
+        "ingredients":{
+            "stick":2,
+            "cobblestone":3
+        }
+    },
+    "stone_pickaxe": {
+        "number":1,
+        "ingredients":{
+            "stick":2,
+            "cobblestone":3
+        }
+    },
+    "stone_shovel": {
+        "number":1,
+        "ingredients":{
+            "stick":2,
+            "cobblestone":1
+        }
+    },
+    "stone_sword": {
+        "number":1,
+        "ingredients":{
+            "stick":2,
+            "cobblestone":2
+        }
     }
 }

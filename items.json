@@ -35,6 +35,37 @@
         "tool":"axe",
         "efficiency":1.5
     },
+    "wooden_sword":{
+        "texture":"wooden_sword.png",
+        "places":"",
+        "tool":"sword",
+        "efficiency":1.2
+    },
+    "stone_pickaxe":{
+        "texture":"stone_pickaxe.png",
+        "places":"",
+        "tool":"pickaxe",
+        "efficiency":2
+    },
+    "stone_shovel":{
+        "texture":"stone_shovel.png",
+        "places":"",
+        "tool":"shovel",
+        "efficiency":2
+    },
+    "stone_axe":{
+        "texture":"stone_axe.png",
+        "places":"",
+        "tool":"axe",
+        "efficiency":2
+    },
+    "stone_sword":{
+        "texture":"stone_sword.png",
+        "places":"",
+        "tool":"sword",
+        "efficiency":1.5
+    },
+
     "oak_log":{
         "texture":"oak_log.png",
         "places":"oak_log",

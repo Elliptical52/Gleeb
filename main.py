@@ -55,9 +55,11 @@ def create_blank_chunk():
     return [[{'block':'', 'health':0} for x in range(CELLS_X)] for y in range(CELLS_Y)]
 
 def get_underground_block(chunk_y, local_y):
+    ## Surface
     if chunk_y < 2:
         return "dirt"
 
+    ## Surface --> Underground Transition
     if chunk_y == 2:
         dirt_chances = [
             1.0, 1.0, 1.0,
@@ -71,6 +73,11 @@ def get_underground_block(chunk_y, local_y):
             return "dirt"
         else:
             return "stone"
+
+    ## Underground
+    value = random.uniform(0, 1)
+
+    if value < 0.05: return "iron_ore"
 
     return "stone"
 
@@ -413,8 +420,11 @@ def use_game_ui():
     global ui_group
     ui_group = game_ui
 
+crafting_ui_scroll = 0
 def use_crafting_ui():
     global ui_group
+    global crafting_ui_scroll
+    crafting_ui_scroll = 0
     ui_group = crafting_ui
 
 menu_button = Button(
@@ -457,11 +467,13 @@ with open('recipes.json') as file:
 with open('creatures.json') as file:
     creature_data = json.load(file)
 
-unlocked_recipes = ['oak_planks', 'stick', 'wooden_axe', 'wooden_pickaxe', 'wooden_shovel']
-
 ## Recipes
 def unlock_recipe(id):
     unlocked_recipes.append(id)
+
+unlocked_recipes = []
+# PROTOTYPE ONLY: unlock all recipes
+for recipe in recipes.keys(): unlock_recipe(recipe)
 
 ## Creatures
 creatures = []
@@ -605,7 +617,7 @@ def spawn(creature, chunk_pos, local_pos):
 
 ## Crafting
 def draw_crafting_ui():
-    y = GRID_SIZE * 2
+    y = (GRID_SIZE * 1) + crafting_ui_scroll
     for recipe_id in unlocked_recipes:
         x = GRID_SIZE * 2
 
@@ -928,8 +940,11 @@ while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT: quit()
         if event.type == pygame.MOUSEWHEEL:
-            selected_slot -= event.y
-            selected_slot %= 9
+            if ui_group == crafting_ui:
+                crafting_ui_scroll += event.y * 10
+            else:
+                selected_slot -= event.y
+                selected_slot %= 9
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_F1: debug = not debug
 
