@@ -104,6 +104,71 @@ for global_x in range(CHUNKS_X * CELLS_X):
 chunk_x = 0
 chunk_y = 0
 
+## Caves
+
+cave_kernel = [
+    (-2, 0),
+
+    (-1, -1), (0, -1), (1, -1),
+
+    (-1, 0),  (0, 0),  (1, 0),
+
+    (-1, 1),  (0, 1),  (1, 1),
+
+    (2, 0),
+]
+
+def create_cave(start_chunk, start_local):
+    cx, cy = start_chunk
+    lx, ly = start_local
+
+    angle = random.uniform(0, math.tau)
+    target_angle = angle
+
+    for i in range(random.randint(25, 200)):
+        # Occasionally choose a new direction
+        if random.randint(0, 12) == 0:
+            target_angle += random.uniform(-0.6, 0.6)
+
+        # Gradually turn toward it
+        angle += (target_angle - angle) * 0.08
+
+        dx = math.cos(angle)
+        dy = math.sin(angle)
+
+        lx += dx
+        ly += dy * 0.55
+
+        if lx >= CELLS_X:
+            cx += 1
+            lx -= CELLS_X
+        elif lx < 0:
+            cx -= 1
+            lx += CELLS_X
+
+        if ly >= CELLS_Y:
+            cy += 1
+            ly -= CELLS_Y
+        elif ly < 0:
+            cy -= 1
+            ly += CELLS_Y
+
+        if cx < 0 or cx >= CHUNKS_X or cy < 2 or cy >= CHUNKS_Y:
+            return
+
+        for rx, ry in cave_kernel:
+            x = int(lx + rx)
+            y = int(ly + ry)
+
+            if 0 <= x < CELLS_X and 0 <= y < CELLS_Y:
+                map[cy][cx][y][x] = {
+                    'block': '',
+                    'health': 0
+                }
+
+for i in range(random.randint(10, 25)):
+    create_cave([random.randint(0, 16), random.randint(3, 16)], [random.randint(0, 16), random.randint(0, 16)])
+
 ## Pygame Setup
 window = pygame.display.set_mode((WIDTH, HEIGHT))
 clock = pygame.time.Clock()
@@ -491,7 +556,6 @@ class Creature:
         if self.chunk_x == chunk_x and self.chunk_y == chunk_y:
             window.blit(self.texture, self.position)
 
-
 class BugCreature(Creature):
     def update(self):
         if random.randint(0, 5) == 0:
@@ -505,7 +569,6 @@ class BugCreature(Creature):
             self.y_velocity *= -1
 
         return super().update()
-
 
 class AquaticCreature(Creature):
     def update(self):
@@ -836,7 +899,28 @@ def console_run(command):
             if len(parameters) == 2:
                 spawn(parameters[1], (chunk_x, chunk_y), mouse_pos)
 
+## Map
+map_surface = pygame.Surface((CELLS_X * 16, CELLS_Y * 16))
+map_surface.set_alpha(200)
+def generate_map():
+    map_surface.fill(BG_COLOR)
+    for cy in range(16):
+        for cx in range(16):
+            for ly in range(CELLS_Y):
+                for lx in range(CELLS_X):
+                    pos = [(cx * CELLS_X) + lx, (cy * CELLS_Y) + ly]
+                    block = map[cy][cx][ly][lx]['block']
+                    if block:
+                        color = block_data[block]['color']
+                        map_surface.set_at(pos, color)
+
+def draw_map():
+    window.blit(pygame.transform.scale2x(map_surface), (GRID_SIZE * 8, GRID_SIZE * 8))
+
+generate_map()
+
 ## Main Loop
+frame = 0
 while True:
     ## Event Loop
     for event in pygame.event.get():
@@ -965,6 +1049,12 @@ while True:
     ## Update World
     random_tick()
 
+    ## Map
+    if debug:
+        if frame % 180 == 0:
+            generate_map()
+        draw_map()
+
     ## UI
     for element in ui_group:
         element.update()
@@ -973,9 +1063,12 @@ while True:
     if ui_group == crafting_ui:
         draw_crafting_ui()
 
+
     ## Console
     if console_open:
         draw_text(tiny_font, (4, 300), console_input, (255, 255, 255))
+
+
 
     ## Update Screen
     window.blit(grid_layer, (0, 0))
@@ -983,3 +1076,4 @@ while True:
 
     ## Timing Control
     clock.tick(FPS)
+    frame += 1
