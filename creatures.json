@@ -2,14 +2,20 @@
     "fly": {
         "name":"Fly",
         "texture":"fly.png",
-        "health":10,
+        "health":1,
         "ai":"bug"
     },
 
     "minnow": {
         "name":"Minnow",
         "texture":"minnow.png",
-        "health":10,
+        "health":5,
         "ai":"aquatic"
+    },
+    "sizzler": {
+        "name":"Sizzler",
+        "texture":"sizzler.png",
+        "health":40,
+        "ai":"passive"
     }
 }

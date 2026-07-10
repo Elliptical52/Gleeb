@@ -608,7 +608,23 @@ class AquaticCreature(Creature):
 
         return super().update()
 
-creature_types = {'bug':BugCreature, 'aquatic':AquaticCreature}
+class PassiveCreature(Creature):
+    def update(self):
+        self.y_velocity += GRAVITY
+
+        if random.randint(0, 120) == 0:
+            self.x_velocity = random.choice([-3, 0, 3])
+
+
+        if self.collide_x():
+            self.x_velocity = 0
+
+        if self.collide_y():
+            self.y_velocity = 0
+
+        return super().update()
+
+creature_types = {'bug':BugCreature, 'aquatic':AquaticCreature, 'passive':PassiveCreature}
 
 def spawn(creature, chunk_pos, local_pos):
     data = creature_data[creature]
