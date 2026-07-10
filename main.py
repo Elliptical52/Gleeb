@@ -351,9 +351,11 @@ def hit_block(grid_position, particles=True):
 def break_block(grid_position, particles):
     grid_x, grid_y = grid_position
     drop = block_data[map[chunk_y][chunk_x][grid_y][grid_x]['block']]['drop']
+    drop_chance = block_data[map[chunk_y][chunk_x][grid_y][grid_x]['block']]['drop_chance']
     drop_min = block_data[map[chunk_y][chunk_x][grid_y][grid_x]['block']]['drop_min']
     drop_max = block_data[map[chunk_y][chunk_x][grid_y][grid_x]['block']]['drop_max']
-    if drop: give_player_item(drop, random.randint(drop_min, drop_max))
+    if drop and random.uniform(0, 1) < drop_chance:
+        give_player_item(drop, random.randint(drop_min, drop_max))
 
     if particles:
         for i in range(15):
