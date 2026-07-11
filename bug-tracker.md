@@ -14,3 +14,6 @@ pa = particle accelerate
 13. Issues caused by smaller screen sizes such as asa being able to crash the game by dragging and hard to click blocks
 14. ~tom is printing something every frame and it is super annoying~
 15. ~flies can fly through blocks~
+16. Because theres now more items than slots not being able to drop items is a bug
+17. Sizzlers don't spawn naturally
+18. Traveling through chunks in caves may teleport you around the caves usually pushing you upwards
