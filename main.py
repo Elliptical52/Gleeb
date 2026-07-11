@@ -77,7 +77,8 @@ def get_underground_block(chunk_y, local_y):
     ## Underground
     value = random.uniform(0, 1)
 
-    if value < 0.05: return "iron_ore"
+    if value < 0.005: return "iron_ore"
+    elif value < 0.02: return "coal_ore"
 
     return "stone"
 
@@ -489,6 +490,9 @@ class Creature:
         self.texture = images[self.data['texture']]
         self.rect = pygame.Rect(self.position, self.texture.get_size())
         self.size = self.texture.get_size()
+        if self.id == 'sizzler':
+            self.burn_timer = 0
+            self.burning = False
 
     def collide_x(self):
         rect = self.texture.get_rect(topleft=(
@@ -606,6 +610,8 @@ class AquaticCreature(Creature):
 
         return super().update()
 
+SIZZLER_BURN_TIME = 60 * 15
+
 class PassiveCreature(Creature):
     def update(self):
         self.y_velocity += GRAVITY
@@ -613,15 +619,32 @@ class PassiveCreature(Creature):
         if random.randint(0, 120) == 0:
             self.x_velocity = random.choice([-3, 0, 3])
 
-
         if self.collide_x():
             self.x_velocity = 0
 
         if self.collide_y():
             self.y_velocity = 0
 
-        return super().update()
+        ## Sizzle-Specific Code
+        if self.id == 'sizzler':
+            self.burn_timer -= 1
+            
+            if self.rect.collidepoint(mouse_pos) and mouse_down[2] and self.burn_timer < 0:
+                if inventory[selected_slot]['item'] == 'coal':
+                    take_item_from_player('coal', 1)
+                    self.burn_timer = SIZZLER_BURN_TIME
+            
+            self.burning = self.burn_timer > 0
+            
+            if self.burning:
+                version = (frame // 20) % 2
+                if version: self.texture = images['sizzler_fire_0.png']
+                else: self.texture = images['sizzler_fire_1.png']
+            else:
+                self.texture = images['sizzler.png']
 
+        return super().update()
+    
 creature_types = {'bug':BugCreature, 'aquatic':AquaticCreature, 'passive':PassiveCreature}
 
 def spawn(creature, chunk_pos, local_pos):
@@ -717,6 +740,7 @@ class Player:
         self.velocity = [0, 0]
         self.health = health
         self.on_ground = False
+        self.smelting_time = 180
 
     def update(self):
         was_grounded = self.on_ground
@@ -847,6 +871,29 @@ class Player:
 
         self.velocity[0] = min(max_speed, max(-max_speed, self.velocity[0]))
 
+        ## Smelting
+        for creature in creatures:
+            if creature.id == 'sizzler':
+                if creature.burning:
+                    if math.dist(self.position, creature.position) < GRID_SIZE * 3:
+                        self.smelting_time -= 1
+                        dx = random.uniform(-5, 5)
+                        dy = random.uniform(-5, 5)
+                        color = [random.randint(128, 255), random.randint(0, 64), 0]
+                        size = random.uniform(3, 5)
+                        pos = [(selected_slot * GRID_SIZE) + (GRID_SIZE // 2), GRID_SIZE // 2]
+                        Particle(pos, (dx, dy), size, random.uniform(30, 90), color)
+                    else:
+                        self.smelting_time = 180
+                        
+        if self.smelting_time == 0:
+            self.smelting_time = 180
+            item = inventory[selected_slot]['item']
+            result = item_data[item]['smelt']
+            if result:
+                take_item_from_player(item, 1)
+                give_player_item(result, 1)
+                
         window.blit(images['gleeb.png'], self.position)
 
     def hurt(self, damage):

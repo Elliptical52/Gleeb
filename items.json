@@ -3,91 +3,127 @@
         "texture":"dirt.png",
         "places":"dirt",
         "tool":"",
-        "efficiency":1
+        "efficiency":1,
+        "smelt":""
     },
     "flower":{
         "texture":"flower.png",
         "places":"flower",
         "tool":"",
-        "efficiency":1
+        "efficiency":1,
+        "smelt":""
     },
     "cobblestone":{
         "texture":"cobblestone.png",
         "places":"cobblestone",
         "tool":"",
-        "efficiency":1
+        "efficiency":1,
+        "smelt":""
     },
     "wooden_pickaxe":{
         "texture":"wooden_pickaxe.png",
         "places":"",
         "tool":"pickaxe",
-        "efficiency":1.5
+        "efficiency":1.5,
+        "smelt":""
     },
     "wooden_shovel":{
         "texture":"wooden_shovel.png",
         "places":"",
         "tool":"shovel",
-        "efficiency":1.5
+        "efficiency":1.5,
+        "smelt":""
     },
     "wooden_axe":{
         "texture":"wooden_axe.png",
         "places":"",
         "tool":"axe",
-        "efficiency":1.5
+        "efficiency":1.5,
+        "smelt":""
     },
     "wooden_sword":{
         "texture":"wooden_sword.png",
         "places":"",
         "tool":"sword",
-        "efficiency":1.2
+        "efficiency":1.2,
+        "smelt":""
     },
     "stone_pickaxe":{
         "texture":"stone_pickaxe.png",
         "places":"",
         "tool":"pickaxe",
-        "efficiency":2
+        "efficiency":2,
+        "smelt":""
     },
     "stone_shovel":{
         "texture":"stone_shovel.png",
         "places":"",
         "tool":"shovel",
-        "efficiency":2
+        "efficiency":2,
+        "smelt":""
     },
     "stone_axe":{
         "texture":"stone_axe.png",
         "places":"",
         "tool":"axe",
-        "efficiency":2
+        "efficiency":2,
+        "smelt":""
     },
     "stone_sword":{
         "texture":"stone_sword.png",
         "places":"",
         "tool":"sword",
-        "efficiency":1.5
+        "efficiency":1.5,
+        "smelt":""
     },
 
     "oak_log":{
         "texture":"oak_log.png",
         "places":"oak_log",
         "tool":"",
-        "efficiency":1
+        "efficiency":1,
+        "smelt":""
     },
     "oak_sapling":{
         "texture":"oak_sapling.png",
         "places":"oak_sapling",
         "tool":"",
-        "efficiency":1
+        "efficiency":1,
+        "smelt":""
     },
     "stick":{
         "texture":"stick.png",
         "places":"",
         "tool":"",
-        "efficiency":1
+        "efficiency":1,
+        "smelt":""
     },
     "oak_planks":{
         "texture":"oak_planks.png",
         "places":"oak_planks",
         "tool":"",
-        "efficiency":1
+        "efficiency":1,
+        "smelt":""
+    },
+    "coal":{
+        "texture":"coal.png",
+        "places":"",
+        "tool":"",
+        "efficiency":1,
+        "smelt":""
+    },
+    "raw_iron":{
+        "texture":"raw_iron.png",
+        "places":"",
+        "tool":"",
+        "efficiency":1,
+        "smelt":"iron_ingot"
+    },
+    "iron_ingot":{
+        "texture":"iron_ingot.png",
+        "places":"",
+        "tool":"",
+        "efficiency":1,
+        "smelt":""
     }
 }

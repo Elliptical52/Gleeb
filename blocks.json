@@ -137,11 +137,22 @@
         "texture":"iron_ore.png",
         "passable":false,
         "color":[169, 137, 113],
-        "drop":"",
+        "drop":"raw_iron",
         "drop_chance":1,
-        "drop_min":1,
+        "drop_min":2,
+        "drop_max":3,
+        "tool":"pickaxe"
+    },
+    "coal_ore": {
+        "name":"Coal Ore",
+        "health":150,
+        "texture":"coal_ore.png",
+        "passable":false,
+        "color":[25, 25, 25],
+        "drop":"coal",
+        "drop_chance":1,
+        "drop_min":2,
         "drop_max":3,
         "tool":"pickaxe"
     }
-
 }
