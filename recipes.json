@@ -66,5 +66,33 @@
             "stick":2,
             "cobblestone":2
         }
+    },
+    "iron_axe": {
+        "number":1,
+        "ingredients":{
+            "stick":2,
+            "iron_ingot":3
+        }
+    },
+    "iron_pickaxe": {
+        "number":1,
+        "ingredients":{
+            "stick":2,
+            "iron_ingot":3
+        }
+    },
+    "iron_shovel": {
+        "number":1,
+        "ingredients":{
+            "stick":2,
+            "iron_ingot":1
+        }
+    },
+    "iron_sword": {
+        "number":1,
+        "ingredients":{
+            "stick":2,
+            "iron_ingot":2
+        }
     }
 }

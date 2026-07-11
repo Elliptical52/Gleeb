@@ -76,6 +76,34 @@
         "efficiency":1.5,
         "smelt":""
     },
+    "iron_pickaxe":{
+        "texture":"iron_pickaxe.png",
+        "places":"",
+        "tool":"pickaxe",
+        "efficiency":2.5,
+        "smelt":""
+    },
+    "iron_shovel":{
+        "texture":"iron_shovel.png",
+        "places":"",
+        "tool":"shovel",
+        "efficiency":2.5,
+        "smelt":""
+    },
+    "iron_axe":{
+        "texture":"iron_axe.png",
+        "places":"",
+        "tool":"axe",
+        "efficiency":2.5,
+        "smelt":""
+    },
+    "iron_sword":{
+        "texture":"iron_sword.png",
+        "places":"",
+        "tool":"sword",
+        "efficiency":2,
+        "smelt":""
+    },
 
     "oak_log":{
         "texture":"oak_log.png",
