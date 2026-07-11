@@ -107,12 +107,10 @@ for global_x in range(CHUNKS_X * CELLS_X):
             "block": block,
             "health": block_data[block]["health"]
         }
-
 chunk_x = 0
-chunk_y = 0
+chunk_y = 1
 
 ## Caves
-
 cave_kernel = [
     (-2, 0),
 
@@ -160,7 +158,7 @@ def create_cave(start_chunk, start_local):
             cy -= 1
             ly += CELLS_Y
 
-        if cx < 0 or cx >= CHUNKS_X or cy < 2 or cy >= CHUNKS_Y:
+        if cx < 0 or cx >= CHUNKS_X or cy < 1 or cy >= CHUNKS_Y:
             return
 
         for rx, ry in cave_kernel:
@@ -686,7 +684,7 @@ def draw_crafting_ui():
 ## Particles
 particles = []
 class Particle:
-    def __init__(self, position, velocity, size, lifespan, color):
+    def __init__(self, position, velocity, size, lifespan, color, gravity=False):
         particles.append(self)
         self.x, self.y = position
         self.vx, self.vy = velocity
@@ -696,10 +694,12 @@ class Particle:
         self.life = lifespan
         self.life_percentage = 1
         self.color = color
+        self.gravity = gravity
 
     def update(self):
         self.x += self.vx
         self.y += self.vy
+        if self.gravity: self.vy += GRAVITY
         self.life_percentage = self.life / self.lifespan
         self.size = self.start_size * self.life_percentage
 
@@ -710,12 +710,18 @@ class Particle:
             particles.remove(self)
 
 ## Player
+MAX_HEALTH = 10
 class Player:
-    def __init__(self, position):
+    def __init__(self, position, health):
         self.position = list(position)
         self.velocity = [0, 0]
+        self.health = health
+        self.on_ground = False
 
     def update(self):
+        was_grounded = self.on_ground
+        landing_speed = self.velocity[1]
+        
         global chunk_x, chunk_y
         self.rect = pygame.Rect(
             self.position[0],
@@ -723,7 +729,6 @@ class Player:
             GRID_SIZE,
             GRID_SIZE * 2
         )
-
 
         ## Water check
         self.in_water = False
@@ -765,18 +770,23 @@ class Player:
                     self.rect.bottom = block_rect.top
                     self.velocity[1] = 0
                     self.on_ground = True
+                    
                 elif self.velocity[1] < 0:
                     self.rect.top = block_rect.bottom
                     self.velocity[1] = 0
-
-        self.position = [self.rect.x, self.rect.y]
-
         
-
+        self.position = [self.rect.x, self.rect.y]
 
         ## Chunk movement
         changed_chunk = False
-
+        
+        ## Fall Damage
+        if not was_grounded and self.on_ground:
+            if landing_speed >= 35:
+                damage = round((landing_speed - 35) * 0.25)
+                if damage >= 1:
+                    self.hurt(damage)
+        
         if self.position[0] >= CELLS_X * GRID_SIZE:
             chunk_x += 1
             self.position[0] = 1
@@ -838,8 +848,18 @@ class Player:
         self.velocity[0] = min(max_speed, max(-max_speed, self.velocity[0]))
 
         window.blit(images['gleeb.png'], self.position)
-        
-player = Player((50, 50))
+
+    def hurt(self, damage):
+        self.health -= damage
+        for i in range(20):
+            color = [random.randint(20, 128), 0, 0]
+            dx, dy = random.uniform(-5, 5), random.uniform(-5, -7)
+            Particle(
+                [self.position[0] + (GRID_SIZE // 2), (self.position[1] + (GRID_SIZE * 2))],
+                [dx, dy], random.uniform(4, 7), 50, color, True
+            )
+
+player = Player((50, 50), MAX_HEALTH)
 
 ## Inventory
 inventory = [{'item':'', 'count':0} for i in range(9)]
@@ -884,6 +904,16 @@ def items_in_inventory(item):
         return inventory[index]['count']
     except:
         return 0
+
+## Health
+def draw_health():
+    x = 4
+    for i in range(MAX_HEALTH):
+        on = player.health >= i
+        texture = images['frog_heart_alive.png'] if on else images['frog_heart_dead.png']
+        resized = pygame.transform.scale(texture, (24, 24))
+        window.blit(resized, (x, GRID_SIZE + 4))
+        x += 26
 
 ## Block Info
 def draw_block_info():
@@ -1021,6 +1051,9 @@ while True:
     ## Draw Inventory
     draw_inventory()
     
+    ## Draw Health 
+    draw_health()
+    
     ## Out-of-Chunk Interaction
     if player.position[1] // GRID_SIZE >= 14:
         block = map[chunk_y + 1][chunk_x][0][player.position[0] // GRID_SIZE]
@@ -1096,12 +1129,9 @@ while True:
     if ui_group == crafting_ui:
         draw_crafting_ui()
 
-
     ## Console
     if console_open:
         draw_text(tiny_font, (4, 300), console_input, (255, 255, 255))
-
-
 
     ## Update Screen
     window.blit(grid_layer, (0, 0))
