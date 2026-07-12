@@ -11,14 +11,22 @@ CELLS_X = WIDTH // GRID_SIZE
 CELLS_Y = HEIGHT // GRID_SIZE
 PLAYER_ACCEL = 1
 MAX_PLAYER_SPEED = 5
-BG_COLOR = (97, 185, 222)
-CHUNKS_X = 16
+BG_COLOR_DAY = (97, 185, 222)
+BG_COLOR_NIGHT = (13, 26, 32)
+CHUNKS_X = 32
 CHUNKS_Y = 16
 PLAYER_REACH = 4 * GRID_SIZE
 image_scale = GRID_SIZE / 16
 
+DAY_LENGTH = FPS * 60 * 10
+DAY_TIMER = 0
+
 ## Debug Mode
 debug = False
+
+## Math Helper
+def lerp(a, b, t):
+    return a + (b - a) * t
 
 ## Load Block Data
 with open('blocks.json') as file:
@@ -1007,12 +1015,12 @@ def console_run(command):
                 spawn(parameters[1], (chunk_x, chunk_y), mouse_pos)
 
 ## Map
-map_surface = pygame.Surface((CELLS_X * 16, CELLS_Y * 16))
+map_surface = pygame.Surface((CELLS_X * CHUNKS_X, CELLS_Y * CHUNKS_Y))
 map_surface.set_alpha(200)
 def generate_map():
-    map_surface.fill(BG_COLOR)
-    for cy in range(16):
-        for cx in range(16):
+    map_surface.fill(BG_COLOR_DAY)
+    for cy in range(CHUNKS_Y):
+        for cx in range(CHUNKS_X):
             for ly in range(CELLS_Y):
                 for lx in range(CELLS_X):
                     pos = [(cx * CELLS_X) + lx, (cy * CELLS_Y) + ly]
@@ -1020,11 +1028,21 @@ def generate_map():
                     if block:
                         color = block_data[block]['color']
                         map_surface.set_at(pos, color)
+    x = chunk_x * CELLS_X + player.position[0] // GRID_SIZE
+    y = chunk_y * CELLS_Y + player.position[1] // GRID_SIZE
+    map_surface.set_at((x, y), (140, 228, 169))
+    map_surface.set_at((x, y+1), (140, 228, 169))
 
 def draw_map():
-    window.blit(pygame.transform.scale2x(map_surface), (GRID_SIZE * 8, GRID_SIZE * 8))
+    window.blit(pygame.transform.scale2x(map_surface), (0, GRID_SIZE * 8))
 
 generate_map()
+
+## Lighting
+lighting_surface = pygame.Surface((WIDTH, HEIGHT))
+lighting_surface.set_alpha(0)
+def update_lighting():
+    lighting_surface.fill(BG_COLOR_NIGHT)
 
 ## Main Loop
 frame = 0
@@ -1076,8 +1094,21 @@ while True:
     ## Music
     if not pygame.mixer.music.get_busy(): next_song()
     
+    ## Day / Night Cycle
+    DAY_TIMER += 1
+    DAY_TIMER %= DAY_LENGTH
+    
+    day_percentage = (1 - math.cos((DAY_TIMER / DAY_LENGTH) * 2 * math.pi)) / 2
+
+    lighting_surface.set_alpha(round(day_percentage * 128))
+    
+    bg_color = [round(lerp(BG_COLOR_DAY[i], BG_COLOR_NIGHT[i], day_percentage)) for i in range(3)]
+    
     ## Clear Screen
-    window.fill(BG_COLOR)
+    window.fill(bg_color)
+
+    ## Update World
+    random_tick()
 
     ## Creatures
     for creature in creatures: creature.update()
@@ -1087,13 +1118,21 @@ while True:
 
     ## Draw Blocks
     draw_blocks()
+    
+    ## Particles
+    for particle in particles:
+        particle.update()
+        
+    ## Lighting
+    window.blit(lighting_surface, (0, 0))
 
     ## Draw Grid
-    grid_layer.fill((0, 0, 0))
+    grid_layer.fill((0, 0, 0))    
     if debug:
         draw_grid_lines()
-        draw_text(tiny_font, (4, 50), str(player.position), (255, 255, 255))
-        draw_text(tiny_font, (4, 80), f'[{chunk_x}, {chunk_y}]', (255, 255, 255))
+        draw_text(tiny_font, (4, 80), str(player.position), (255, 255, 255))
+        draw_text(tiny_font, (4, 105), f'[{chunk_x}, {chunk_y}]', (255, 255, 255))
+        draw_text(tiny_font, (4, 130), f'{DAY_TIMER} [{round(day_percentage * 100, 2)}%]', (255, 255, 255))
     
     ## Draw Inventory
     draw_inventory()
@@ -1155,12 +1194,6 @@ while True:
                             take_item_from_player(item, 1)
                             place_block((mouse_grid_x, mouse_grid_y), block)
 
-    ## Particles
-    for particle in particles:
-        particle.update()
-
-    ## Update World
-    random_tick()
 
     ## Map
     if debug:
