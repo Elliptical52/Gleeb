@@ -17,3 +17,4 @@ pa = particle accelerate
 16. Because theres now more items than slots not being able to drop items is a bug
 17. Sizzlers don't spawn naturally
 18. Traveling through chunks in caves may teleport you around the caves usually pushing you upwards
+19. Gleeb doesn't know how to use a sword, or his hands, or anything to fight
